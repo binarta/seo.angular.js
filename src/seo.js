@@ -12,6 +12,7 @@ function seoSupportDirectiveFactory($rootScope, $modal, i18nMessageReader, $loca
             });
 
             topicRegistry.subscribe('i18n.locale', function (locale) {
+                $scope.seo = {};
                 $scope.locale = locale;
 
                 getTranslation({

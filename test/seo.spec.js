@@ -45,40 +45,49 @@ describe('seo', function () {
                 });
 
                 describe('when i18n.locale is received', function () {
-                    var titleCtx;
-
                     beforeEach(function () {
-                        registry['i18n.locale'](locale);
-                        onSuccessSpy['defaultTitle']('default title');
-
-                        titleCtx = {
-                            id: 'title',
-                            locale: scope.locale,
-                            code: '/foo/bar.seo.title',
-                            namespace: scope.namespace,
-                            fallback: 'default title'
+                        scope.seo = {
+                            defaultTitle: 'old default title',
+                            title: 'old title',
+                            description: 'old description'
                         };
+
+                        registry['i18n.locale'](locale);
                     });
 
                     it('put locale on scope', function () {
                         expect(scope.locale).toEqual(locale);
                     });
 
+                    it('reset seo values', function () {
+                        expect(scope.seo).toEqual({});
+                    });
+
                     describe('get default title', function () {
-                        var ctx;
+                        var titleCtx, defaultTitleCtx;
 
                         beforeEach(function () {
-                            ctx = {
+                            onSuccessSpy['defaultTitle']('default title');
+
+                            defaultTitleCtx = {
                                 id: 'defaultTitle',
                                 locale: 'locale',
                                 code: 'seo.title.default',
                                 namespace: scope.namespace,
                                 fallback: scope.namespace
                             };
+
+                            titleCtx = {
+                                id: 'title',
+                                locale: scope.locale,
+                                code: '/foo/bar.seo.title',
+                                namespace: scope.namespace,
+                                fallback: 'default title'
+                            };
                         });
 
                         it('feed context to i18n message reader', function () {
-                            expect(ctxSpy['defaultTitle']).toEqual(ctx);
+                            expect(ctxSpy['defaultTitle']).toEqual(defaultTitleCtx);
                         });
 
                         describe('onSuccess with known default title', function () {
@@ -110,239 +119,239 @@ describe('seo', function () {
                                 expect(scope.seo.defaultTitle).toEqual(scope.namespace);
                             });
                         });
-                    });
 
-                    describe('openSEOModal is called', function () {
-                        var modalInstance, modalClosedSpy;
+                        describe('openSEOModal is called', function () {
+                            var modalInstance, modalClosedSpy;
 
-                        beforeEach(function () {
-                            modalInstance = {
-                                result: {
-                                    then: function (result) {
-                                        modalClosedSpy = result;
+                            beforeEach(function () {
+                                modalInstance = {
+                                    result: {
+                                        then: function (result) {
+                                            modalClosedSpy = result;
+                                        }
                                     }
-                                }
-                            };
-                            spyOn(modal, 'open').andReturn(modalInstance);
-                            scope.openSEOModal();
-                        });
-
-                        it('modal is opened', function () {
-                            expect(modal.open).toHaveBeenCalled();
-                        });
-
-                        it('modal is opened with scope setting', function () {
-                            expect(modal.open.mostRecentCall.args[0].scope).toEqual(scope);
-                        });
-
-                        describe('modal is opened with template url setting', function () {
-                            it('default template', function () {
-                                expect(modal.open.mostRecentCall.args[0].templateUrl).toEqual('partials/seo-modal.html');
-                            });
-
-                            it('overridden template', function () {
-                                rootScope.seoModalTemplateUrl = 'overridden';
+                                };
+                                spyOn(modal, 'open').andReturn(modalInstance);
                                 scope.openSEOModal();
+                            });
 
-                                expect(modal.open.mostRecentCall.args[0].templateUrl).toEqual('overridden');
+                            it('modal is opened', function () {
+                                expect(modal.open).toHaveBeenCalled();
+                            });
+
+                            it('modal is opened with scope setting', function () {
+                                expect(modal.open.mostRecentCall.args[0].scope).toEqual(scope);
+                            });
+
+                            describe('modal is opened with template url setting', function () {
+                                it('default template', function () {
+                                    expect(modal.open.mostRecentCall.args[0].templateUrl).toEqual('partials/seo-modal.html');
+                                });
+
+                                it('overridden template', function () {
+                                    rootScope.seoModalTemplateUrl = 'overridden';
+                                    scope.openSEOModal();
+
+                                    expect(modal.open.mostRecentCall.args[0].templateUrl).toEqual('overridden');
+                                });
+                            });
+
+                            it('modal is opened with controller setting', function () {
+                                expect(modal.open.mostRecentCall.args[0].controller).toEqual(SEOModalInstanceCtrl);
+                            });
+
+                            it('modal is opened with backdrop setting', function () {
+                                expect(modal.open.mostRecentCall.args[0].backdrop).toEqual('static');
+                            });
+
+                            describe('modal is closed', function () {
+                                beforeEach(function () {
+                                    scope.seo = {
+                                        defaultTitle: 'default title',
+                                        title: 'title',
+                                        description: 'description'
+                                    };
+
+                                    scope.seo.input = {
+                                        defaultTitle: 'modified default title',
+                                        title: 'modified title',
+                                        description: 'modified description'
+                                    };
+                                    modalClosedSpy(scope.seo.input);
+                                });
+
+                                it('seo values are set', function () {
+                                    expect(scope.seo).toEqual({
+                                        defaultTitle: 'modified default title',
+                                        title: 'modified title',
+                                        description: 'modified description'
+                                    });
+                                });
+
+                                it('title should be equal to default title if empty', function () {
+                                    scope.seo.input = {
+                                        defaultTitle: 'modified default title',
+                                        title: '',
+                                        description: 'modified description'
+                                    };
+                                    modalClosedSpy(scope.seo.input);
+
+                                    expect(scope.seo).toEqual({
+                                        defaultTitle: 'modified default title',
+                                        title: 'modified default title',
+                                        description: 'modified description'
+                                    });
+                                });
                             });
                         });
 
-                        it('modal is opened with controller setting', function () {
-                            expect(modal.open.mostRecentCall.args[0].controller).toEqual(SEOModalInstanceCtrl);
-                        });
-
-                        it('modal is opened with backdrop setting', function () {
-                            expect(modal.open.mostRecentCall.args[0].backdrop).toEqual('static');
-                        });
-
-                        describe('modal is closed', function () {
+                        describe('on route change success and default title is undefined', function () {
                             beforeEach(function () {
-                                scope.seo = {
-                                    defaultTitle: 'default title',
-                                    title: 'title',
-                                    description: 'description'
-                                };
-
-                                scope.seo.input = {
-                                    defaultTitle: 'modified default title',
-                                    title: 'modified title',
-                                    description: 'modified description'
-                                };
-                                modalClosedSpy(scope.seo.input);
+                                scope.seo.defaultTitle = undefined;
+                                scope.$broadcast('$routeChangeSuccess');
                             });
 
-                            it('seo values are set', function () {
-                                expect(scope.seo).toEqual({
-                                    defaultTitle: 'modified default title',
-                                    title: 'modified title',
-                                    description: 'modified description'
-                                });
-                            });
-
-                            it('title should be equal to default title if empty', function () {
-                                scope.seo.input = {
-                                    defaultTitle: 'modified default title',
-                                    title: '',
-                                    description: 'modified description'
-                                };
-                                modalClosedSpy(scope.seo.input);
-
-                                expect(scope.seo).toEqual({
-                                    defaultTitle: 'modified default title',
-                                    title: 'modified default title',
-                                    description: 'modified description'
-                                });
-                            });
-                        });
-                    });
-
-                    describe('on route change success and default title is undefined', function () {
-                        beforeEach(function () {
-                            scope.seo.defaultTitle = undefined;
-                            scope.$broadcast('$routeChangeSuccess');
-                        });
-
-                        it('should not get title', function () {
-                            expect(ctxSpy['title']).toBeUndefined();
-                        });
-                    });
-
-                    describe('on route change success', function () {
-                        beforeEach(function () {
-                            scope.$broadcast('$routeChangeSuccess');
-                        });
-
-                        describe('get title', function () {
-                            it('feed context to i18n message reader', function () {
-                                expect(ctxSpy['title']).toEqual(titleCtx);
-                            });
-
-                            describe('onSuccess with known title', function () {
-                                beforeEach(function () {
-                                    onSuccessSpy['title']('title');
-                                });
-
-                                it('put on scope', function () {
-                                    expect(scope.seo.title).toEqual('title');
-                                });
-                            });
-
-                            describe('onSuccess with empty title', function () {
-                                beforeEach(function () {
-                                    onSuccessSpy['title']('');
-                                });
-
-                                it('put default title on scope', function () {
-                                    expect(scope.seo.title).toEqual('default title');
-                                });
-                            });
-
-                            describe('onSuccess with unknown title', function () {
-                                beforeEach(function () {
-                                    onSuccessSpy['title']('???/foo/bar.seo.title???');
-                                });
-
-                                it('put default title on scope', function () {
-                                    expect(scope.seo.title).toEqual('default title');
-                                });
-                            });
-
-                            describe('onError', function () {
-                                beforeEach(function () {
-                                    onErrorSpy['title']();
-                                });
-
-                                it('put default title on scope', function () {
-                                    expect(scope.seo.title).toEqual('default title');
-                                });
+                            it('should not get title', function () {
+                                expect(ctxSpy['title']).toBeUndefined();
                             });
                         });
 
-                        describe('get description', function () {
-                            var ctx;
-
+                        describe('on route change success', function () {
                             beforeEach(function () {
-                                ctx = {
-                                    id: 'description',
-                                    locale: scope.locale,
-                                    code: '/foo/bar.seo.description',
-                                    namespace: scope.namespace,
-                                    fallback: ''
-                                };
+                                scope.$broadcast('$routeChangeSuccess');
                             });
 
-                            it('feed context to i18n message reader', function () {
-                                expect(ctxSpy['description']).toEqual(ctx);
+                            describe('get title', function () {
+                                it('feed context to i18n message reader', function () {
+                                    expect(ctxSpy['title']).toEqual(titleCtx);
+                                });
+
+                                describe('onSuccess with known title', function () {
+                                    beforeEach(function () {
+                                        onSuccessSpy['title']('title');
+                                    });
+
+                                    it('put on scope', function () {
+                                        expect(scope.seo.title).toEqual('title');
+                                    });
+                                });
+
+                                describe('onSuccess with empty title', function () {
+                                    beforeEach(function () {
+                                        onSuccessSpy['title']('');
+                                    });
+
+                                    it('put default title on scope', function () {
+                                        expect(scope.seo.title).toEqual('default title');
+                                    });
+                                });
+
+                                describe('onSuccess with unknown title', function () {
+                                    beforeEach(function () {
+                                        onSuccessSpy['title']('???/foo/bar.seo.title???');
+                                    });
+
+                                    it('put default title on scope', function () {
+                                        expect(scope.seo.title).toEqual('default title');
+                                    });
+                                });
+
+                                describe('onError', function () {
+                                    beforeEach(function () {
+                                        onErrorSpy['title']();
+                                    });
+
+                                    it('put default title on scope', function () {
+                                        expect(scope.seo.title).toEqual('default title');
+                                    });
+                                });
                             });
 
-                            describe('onSuccess with known description', function () {
+                            describe('get description', function () {
+                                var ctx;
+
                                 beforeEach(function () {
-                                    onSuccessSpy['description']('description');
+                                    ctx = {
+                                        id: 'description',
+                                        locale: scope.locale,
+                                        code: '/foo/bar.seo.description',
+                                        namespace: scope.namespace,
+                                        fallback: ''
+                                    };
                                 });
 
-                                it('put on scope', function () {
-                                    expect(scope.seo.description).toEqual('description');
+                                it('feed context to i18n message reader', function () {
+                                    expect(ctxSpy['description']).toEqual(ctx);
                                 });
+
+                                describe('onSuccess with known description', function () {
+                                    beforeEach(function () {
+                                        onSuccessSpy['description']('description');
+                                    });
+
+                                    it('put on scope', function () {
+                                        expect(scope.seo.description).toEqual('description');
+                                    });
+                                });
+
+                                describe('onSuccess with unknown description', function () {
+                                    beforeEach(function () {
+                                        onSuccessSpy['description']('???/foo/bar.seo.description???');
+                                    });
+
+                                    it('put empty description on scope', function () {
+                                        expect(scope.seo.description).toEqual('');
+                                    });
+                                });
+
+                                describe('onError', function () {
+                                    beforeEach(function () {
+                                        onErrorSpy['description']();
+                                    });
+
+                                    it('put empty description on scope', function () {
+                                        expect(scope.seo.description).toEqual('');
+                                    });
+                                });
+
                             });
-
-                            describe('onSuccess with unknown description', function () {
-                                beforeEach(function () {
-                                    onSuccessSpy['description']('???/foo/bar.seo.description???');
-                                });
-
-                                it('put empty description on scope', function () {
-                                    expect(scope.seo.description).toEqual('');
-                                });
-                            });
-
-                            describe('onError', function () {
-                                beforeEach(function () {
-                                    onErrorSpy['description']();
-                                });
-
-                                it('put empty description on scope', function () {
-                                    expect(scope.seo.description).toEqual('');
-                                });
-                            });
-
                         });
-                    });
 
-                    describe('when default title is changed', function () {
-                        describe('and title is undefined', function () {
-                            beforeEach(function () {
-                                scope.seo.defaultTitle = 'changed';
-                                scope.seo.title = undefined;
-                                scope.$apply();
+                        describe('when default title is changed', function () {
+                            describe('and title is undefined', function () {
+                                beforeEach(function () {
+                                    scope.seo.defaultTitle = 'changed';
+                                    scope.seo.title = undefined;
+                                    scope.$apply();
+                                });
+
+                                it('get title', function () {
+                                    expect(ctxSpy['title'].fallback).toEqual('changed');
+                                });
                             });
 
-                            it('get title', function () {
-                                expect(ctxSpy['title'].fallback).toEqual('changed');
+                            describe('and title is defined', function () {
+                                beforeEach(function () {
+                                    scope.seo.defaultTitle = 'changed';
+                                    scope.seo.title = 'title';
+                                    scope.$apply();
+                                });
+
+                                it('do nothing', function () {
+                                    expect(ctxSpy['title']).toBeUndefined();
+                                });
                             });
                         });
 
-                        describe('and title is defined', function () {
+                        describe('when default title is undefined', function () {
                             beforeEach(function () {
-                                scope.seo.defaultTitle = 'changed';
-                                scope.seo.title = 'title';
+                                scope.seo.defaultTitle = undefined;
                                 scope.$apply();
                             });
 
                             it('do nothing', function () {
                                 expect(ctxSpy['title']).toBeUndefined();
                             });
-                        });
-                    });
-
-                    describe('when default title is undefined', function () {
-                        beforeEach(function () {
-                            scope.seo.defaultTitle = undefined;
-                            scope.$apply();
-                        });
-
-                        it('do nothing', function () {
-                            expect(ctxSpy['title']).toBeUndefined();
                         });
                     });
                 });
