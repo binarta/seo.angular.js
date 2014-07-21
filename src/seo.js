@@ -1,7 +1,7 @@
 angular.module('seo', ['notifications', 'config', 'ui.bootstrap.modal'])
-    .directive('seoSupport', ['$rootScope', '$modal', 'i18nMessageReader', '$location', 'topicRegistry', 'config', seoSupportDirectiveFactory]);
+    .directive('seoSupport', ['$modal', 'i18nMessageReader', '$location', 'topicRegistry', 'config', '$route', seoSupportDirectiveFactory]);
 
-function seoSupportDirectiveFactory($rootScope, $modal, i18nMessageReader, $location, topicRegistry, config) {
+function seoSupportDirectiveFactory($modal, i18nMessageReader, $location, topicRegistry, config, $route) {
     return {
         restrict: 'C',
         link: function ($scope) {
@@ -43,7 +43,7 @@ function seoSupportDirectiveFactory($rootScope, $modal, i18nMessageReader, $loca
 
             $scope.openSEOModal = function () {
                 var modalInstance = $modal.open({
-                    templateUrl: $rootScope.seoModalTemplateUrl ? $rootScope.seoModalTemplateUrl : 'partials/seo-modal.html',
+                    templateUrl: $route.routes['/template/seo-modal'].templateUrl,
                     controller: SEOModalInstanceCtrl,
                     scope: $scope,
                     backdrop: 'static'

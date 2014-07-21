@@ -2,14 +2,13 @@ describe('seo', function () {
     beforeEach(module('seo'));
 
     describe('seoSupport directive', function () {
-        var directive, scope, rootScope, config, modal, i18nMessageReaderSpy, ctxSpy, onSuccessSpy, onErrorSpy, registry;
+        var directive, scope, config, modal, i18nMessageReaderSpy, ctxSpy, onSuccessSpy, onErrorSpy, registry, route;
 
         beforeEach(inject(function ($rootScope, $location, topicRegistry, topicRegistryMock) {
             ctxSpy = [];
             onSuccessSpy = [];
             onErrorSpy = [];
             scope = $rootScope.$new();
-            rootScope = $rootScope;
             i18nMessageReaderSpy = function (ctx, onSuccess, onError) {
                 ctxSpy[ctx.id] = ctx;
                 onSuccessSpy[ctx.id] = onSuccess;
@@ -22,7 +21,11 @@ describe('seo', function () {
                 namespace: 'namespace'
             };
             registry = topicRegistryMock;
-            directive = seoSupportDirectiveFactory(rootScope ,modal, i18nMessageReaderSpy, $location, topicRegistry, config);
+            route = {routes: []};
+            route.routes['/template/seo-modal'] = {
+                templateUrl: 'seo-modal.html'
+            };
+            directive = seoSupportDirectiveFactory(modal, i18nMessageReaderSpy, $location, topicRegistry, config, route);
         }));
 
         it('restrict to class', function () {
@@ -143,17 +146,8 @@ describe('seo', function () {
                                 expect(modal.open.mostRecentCall.args[0].scope).toEqual(scope);
                             });
 
-                            describe('modal is opened with template url setting', function () {
-                                it('default template', function () {
-                                    expect(modal.open.mostRecentCall.args[0].templateUrl).toEqual('partials/seo-modal.html');
-                                });
-
-                                it('overridden template', function () {
-                                    rootScope.seoModalTemplateUrl = 'overridden';
-                                    scope.openSEOModal();
-
-                                    expect(modal.open.mostRecentCall.args[0].templateUrl).toEqual('overridden');
-                                });
+                            it('modal is opened with template url setting', function () {
+                                expect(modal.open.mostRecentCall.args[0].templateUrl).toEqual('seo-modal.html');
                             });
 
                             it('modal is opened with controller setting', function () {
