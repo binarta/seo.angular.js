@@ -2,7 +2,7 @@ describe('seo', function () {
     beforeEach(module('seo'));
 
     describe('seoSupport directive', function () {
-        var directive, scope, config, modal, i18nMessageReaderSpy, ctxSpy, onSuccessSpy, onErrorSpy, registry, route;
+        var directive, scope, config, modal, i18nMessageReaderSpy, ctxSpy, onSuccessSpy, onErrorSpy, registry;
 
         beforeEach(inject(function ($rootScope, $location, topicRegistry, topicRegistryMock) {
             ctxSpy = [];
@@ -21,11 +21,7 @@ describe('seo', function () {
                 namespace: 'namespace'
             };
             registry = topicRegistryMock;
-            route = {routes: []};
-            route.routes['/template/seo-modal'] = {
-                templateUrl: 'seo-modal.html'
-            };
-            directive = seoSupportDirectiveFactory(modal, i18nMessageReaderSpy, $location, topicRegistry, config, route);
+            directive = seoSupportDirectiveFactory(modal, i18nMessageReaderSpy, $location, topicRegistry, config);
         }));
 
         it('restrict to class', function () {
@@ -146,9 +142,24 @@ describe('seo', function () {
                                 expect(modal.open.mostRecentCall.args[0].scope).toEqual(scope);
                             });
 
-                            it('modal is opened with template url setting', function () {
-                                expect(modal.open.mostRecentCall.args[0].templateUrl).toEqual('seo-modal.html');
+                            it('modal is opened with default template url setting', function () {
+                                expect(modal.open.mostRecentCall.args[0].templateUrl).toEqual('bower_components/binarta.seo.angular/template/seo-modal.html');
                             });
+
+                            it('modal is opened with template url with specific styling', function () {
+                                config.styling = 'bootstrap3';
+                                scope.openSEOModal();
+
+                                expect(modal.open.mostRecentCall.args[0].templateUrl).toEqual('bower_components/binarta.seo.angular/template/bootstrap3/seo-modal.html');
+                            });
+
+                            it('modal is opened with template url with specific components directory', function () {
+                                config.componentsDir = 'components';
+                                scope.openSEOModal();
+
+                                expect(modal.open.mostRecentCall.args[0].templateUrl).toEqual('components/binarta.seo.angular/template/seo-modal.html');
+                            });
+
 
                             it('modal is opened with controller setting', function () {
                                 expect(modal.open.mostRecentCall.args[0].controller).toEqual(SEOModalInstanceCtrl);

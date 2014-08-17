@@ -1,7 +1,7 @@
 angular.module('seo', ['notifications', 'config', 'ui.bootstrap.modal'])
-    .directive('seoSupport', ['$modal', 'i18nMessageReader', '$location', 'topicRegistry', 'config', '$route', seoSupportDirectiveFactory]);
+    .directive('seoSupport', ['$modal', 'i18nMessageReader', '$location', 'topicRegistry', 'config', seoSupportDirectiveFactory]);
 
-function seoSupportDirectiveFactory($modal, i18nMessageReader, $location, topicRegistry, config, $route) {
+function seoSupportDirectiveFactory($modal, i18nMessageReader, $location, topicRegistry, config) {
     return {
         restrict: 'C',
         link: function ($scope) {
@@ -42,8 +42,11 @@ function seoSupportDirectiveFactory($modal, i18nMessageReader, $location, topicR
             }
 
             $scope.openSEOModal = function () {
+                var componentsDir = config.componentsDir || 'bower_components';
+                var styling = config.styling ? config.styling + '/' : '';
+
                 var modalInstance = $modal.open({
-                    templateUrl: $route.routes['/template/seo-modal'].templateUrl,
+                    templateUrl: componentsDir + '/binarta.seo.angular/template/' + styling + 'seo-modal.html',
                     controller: SEOModalInstanceCtrl,
                     scope: $scope,
                     backdrop: 'static'
