@@ -31,12 +31,11 @@ describe('seo', function () {
             i18n,
             $rootScope,
             registry,
-            namespace = 'my.namespace',
+            defaultTitle = 'Powered by Binarta',
             path = '/test/path',
             locale = 'en';
 
-        beforeEach(inject(function (config, $location) {
-            config.namespace = namespace;
+        beforeEach(inject(function ($location) {
             $location.path(path + '/' + locale);
         }));
 
@@ -52,14 +51,14 @@ describe('seo', function () {
         }));
 
         it('i18n message are resolved', function () {
-            expect(i18n.resolveSpy['seo.title.default']).toEqual(namespace);
+            expect(i18n.resolveSpy['seo.title.default']).toEqual(defaultTitle);
             expect(i18n.resolveSpy[path + '.seo.title']).toEqual(' ');
             expect(i18n.resolveSpy[path + '.seo.description']).toEqual(' ');
         });
 
         it('put default seo values on rootScope', function () {
             expect($rootScope.seo).toEqual({
-                defaultTitle: namespace,
+                defaultTitle: defaultTitle,
                 title: '',
                 description: ''
             });

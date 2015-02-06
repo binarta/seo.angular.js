@@ -1,5 +1,5 @@
 angular.module('seo', [])
-    .service('seoSupport', ['i18n', 'config', '$location', 'topicRegistry', '$q', '$rootScope', SeoSupportService])
+    .service('seoSupport', ['i18n', '$location', 'topicRegistry', '$q', '$rootScope', SeoSupportService])
     .directive('seoSupport', ['editModeRenderer', 'seoSupport', '$rootScope', 'activeUserHasPermission', seoSupportDirectiveFactory])
     .run(['seoSupport', '$rootScope', function (seoSupport, $rootScope) {
         $rootScope.$on('$routeChangeSuccess', function () {
@@ -7,7 +7,7 @@ angular.module('seo', [])
         });
     }]);
 
-function SeoSupportService(i18n, config, $location, topicRegistry, $q, $rootScope) {
+function SeoSupportService(i18n, $location, topicRegistry, $q, $rootScope) {
     var locale;
 
     $rootScope.seo = {};
@@ -43,7 +43,7 @@ function SeoSupportService(i18n, config, $location, topicRegistry, $q, $rootScop
         $q.all([
             i18n.resolve({
                 code: 'seo.title.default',
-                default: config.namespace
+                default: 'Powered by Binarta'
             }),
             i18n.resolve({
                 code: getUnlocalizedPath() + '.seo.title',
