@@ -1,131 +1,130 @@
-angular.module('seo', ['notifications', 'config', 'ui.bootstrap.modal'])
-    .directive('seoSupport', ['$modal', 'i18nMessageReader', '$location', 'topicRegistry', 'config', seoSupportDirectiveFactory]);
+angular.module('seo', [])
+    .service('seoSupport', ['i18n', 'config', '$location', 'topicRegistry', '$q', '$rootScope', SeoSupportService])
+    .directive('seoSupport', ['editModeRenderer', 'seoSupport', '$rootScope', 'activeUserHasPermission', seoSupportDirectiveFactory])
+    .run(['seoSupport', '$rootScope', function (seoSupport, $rootScope) {
+        $rootScope.$on('$routeChangeSuccess', function () {
+            seoSupport.resolve();
+        });
+    }]);
 
-function seoSupportDirectiveFactory($modal, i18nMessageReader, $location, topicRegistry, config) {
-    return {
-        restrict: 'C',
-        link: function ($scope) {
-            $scope.seo = {};
+function SeoSupportService(i18n, config, $location, topicRegistry, $q, $rootScope) {
+    var locale;
 
-            topicRegistry.subscribe('config.initialized', function () {
-                $scope.namespace = config.namespace;
-            });
+    $rootScope.seo = {};
 
-            topicRegistry.subscribe('i18n.locale', function (locale) {
-                $scope.seo = {};
-                $scope.locale = locale;
+    topicRegistry.subscribe('i18n.locale', function (l) {
+        locale = l;
+    });
 
-                getTranslation({
-                    id: 'defaultTitle',
-                    locale: locale,
-                    code: 'seo.title.default',
-                    namespace: $scope.namespace,
-                    fallback: $scope.namespace
-                });
-            });
-
-            function getUnlocalizedPath () {
-                return $location.path().replace('/' + $scope.locale, '');
-            }
-
-            function isUnknown(translation, code) {
-                return translation == '???' + code + '???';
-            }
-
-            function getTranslation (ctx) {
-                i18nMessageReader(ctx, function (translation) {
-                    if (isUnknown(translation, ctx.code) || translation == '') $scope.seo[ctx.id] = ctx.fallback;
-                    else $scope.seo[ctx.id] =  translation;
-                }, function () {
-                    $scope.seo[ctx.id] = ctx.fallback;
-                });
-            }
-
-            $scope.openSEOModal = function () {
-                var componentsDir = config.componentsDir || 'bower_components';
-                var styling = config.styling ? config.styling + '/' : '';
-
-                var modalInstance = $modal.open({
-                    templateUrl: componentsDir + '/binarta.seo.angular/template/' + styling + 'seo-modal.html',
-                    controller: SEOModalInstanceCtrl,
-                    scope: $scope,
-                    backdrop: 'static'
-                });
-
-                modalInstance.result.then(function (input) {
-                    if (input.title == '') input.title = input.defaultTitle;
-                    $scope.seo = input;
-                });
-            };
-
-            function getTitleTranslation () {
-                getTranslation({
-                    id: 'title',
-                    locale: $scope.locale,
-                    code: getUnlocalizedPath() + '.seo.title',
-                    namespace: $scope.namespace,
-                    fallback: $scope.seo.defaultTitle
-                });
-            }
-
-            $scope.$on('$routeChangeSuccess', function () {
-                if ($scope.seo.defaultTitle) getTitleTranslation();
-
-                getTranslation({
-                    id: 'description',
-                    locale: $scope.locale,
-                    code: getUnlocalizedPath() + '.seo.description',
-                    namespace: $scope.namespace,
-                    fallback: ''
-                });
-            });
-
-            $scope.$watch('seo.defaultTitle', function (newValue) {
-                if (newValue && !$scope.seo.title) getTitleTranslation();
-            });
-        }
-    }
-}
-
-function SEOModalInstanceCtrl($scope, $modalInstance, i18nMessageWriter, usecaseAdapterFactory, $location) {
-    $scope.seo.input = angular.copy($scope.seo);
-
-    if($scope.seo.input.title == $scope.seo.input.defaultTitle) {
-        $scope.seo.input.title = '';
+    function getUnlocalizedPath() {
+        return $location.path().replace('/' + locale, '');
     }
 
-    $scope.close = function () {
-        $modalInstance.dismiss();
+    this.update = function (args) {
+        $q.all([
+            i18n.translate({
+                code: 'seo.title.default',
+                translation: args.defaultTitle
+            }),
+            i18n.translate({
+                code: getUnlocalizedPath() + '.seo.title',
+                translation: args.title
+            }),
+            i18n.translate({
+                code: getUnlocalizedPath() + '.seo.description',
+                translation: args.description
+            })
+        ]).then(function () {
+            $rootScope.seo = args;
+        });
     };
 
-    $scope.save = function () {
-        function getUnlocalizedPath () {
-            return $location.path().replace('/' + $scope.locale, '');
+    this.resolve = function () {
+        $q.all([
+            i18n.resolve({
+                code: 'seo.title.default',
+                default: config.namespace
+            }),
+            i18n.resolve({
+                code: getUnlocalizedPath() + '.seo.title',
+                default: ' '
+            }),
+            i18n.resolve({
+                code: getUnlocalizedPath() + '.seo.description',
+                default: ' '
+            })
+        ]).then(function (result) {
+            $rootScope.seo = {
+                defaultTitle: result[0],
+                title: result[1].trim(),
+                description: result[2].trim()
+            };
+        });
+    };
+}
+
+function seoSupportDirectiveFactory(editModeRenderer, seoSupport, $rootScope, activeUserHasPermission) {
+    return {
+        restrict: 'A',
+        scope: true,
+        link: function (scope) {
+            scope.open = function () {
+                activeUserHasPermission({
+                    no: function () {
+                        editModeRenderer.open({
+                            ctx: {
+                                close: function () {
+                                    editModeRenderer.close();
+                                }
+                            },
+                            template: "<form><p>Vanaf een Essential abonnement kun je de titel en omschrijving " +
+                            "van al je pagina's aanpassen. Zo zorg je ervoor dat je pagina's mooi worden " +
+                            "weergegeven in de zoekresultaten.</p></form>" +
+                            "<div class=\"dropdown-menu-buttons\">" +
+                            "<a class=\"btn btn-success\" href=\"https://binarta.com/#!/applications\" target=\"_blank\">Upgraden</a>" +
+                            "<button type=\"reset\" class=\"btn btn-default\" ng-click=\"close()\">Sluiten</button>" +
+                            "</div>"
+                        });
+                    },
+                    yes: function () {
+                        editModeRenderer.open({
+                            ctx: {
+                                seo: angular.copy($rootScope.seo),
+                                save: function (args) {
+                                    seoSupport.update(args);
+                                    editModeRenderer.close();
+                                },
+                                close: function () {
+                                    editModeRenderer.close();
+                                }
+                            },
+                            template: '<form>' +
+                            '<div class=\"form-group\">' +
+                            '<label for=\"inputDefaultTitle\">Standaard paginatitel</label>' +
+                            '<input type=\"text\" id=\"inputDefaultTitle\" ng-model=\"seo.defaultTitle\">' +
+                            '<small><i class=\"fa fa-info-circle\"></i> Wordt gebruikt als er geen pagina specifieke titel is gedefinieerd.</small>' +
+                            '</div>' +
+
+                            '<div class=\"form-group\">' +
+                            '<label for=\"inputTitle\">Paginatitel</label>' +
+                            '<input type=\"text\" id=\"inputTitle\" ng-model=\"seo.title\">' +
+                            '<small><i class=\"fa fa-info-circle\"></i> Maak de titel niet langer dan 60 tekens in het formaat "Primair trefwoord - Secundair trefwoord | Merknaam".</small>' +
+                            '</div>' +
+
+                            '<div class=\"form-group\">' +
+                            '<label for=\"inputDescription\">Paginabescrijving</label>' +
+                            '<textarea id=\"inputDescription\" ng-model=\"seo.description\"></textarea>' +
+                            '<small><i class=\"fa fa-info-circle\"></i> Maak de beschrijving niet langer dan 160 tekens.</small>' +
+                            '</div>' +
+                            '</form>' +
+                            '<div class=\"dropdown-menu-buttons\">' +
+                            '<button type=\"submit\" class=\"btn btn-primary\" ng-click=\"save(seo)\">Opslaan</button>' +
+                            '<button type=\"reset\" class=\"btn btn-default\" ng-click=\"close()\">Annuleren</button>' +
+                            '</div>'
+                        });
+                    }
+                }, 'seo.edit');
+            };
         }
-
-        i18nMessageWriter({
-            id: 'defaultTitle',
-            key: 'seo.title.default',
-            message: $scope.seo.input.defaultTitle,
-            namespace: $scope.namespace
-        }, usecaseAdapterFactory($scope));
-
-        if($scope.seo.input.title != $scope.seo.input.defaultTitle) {
-            i18nMessageWriter({
-                id: 'title',
-                key: getUnlocalizedPath() + '.seo.title',
-                message: $scope.seo.input.title,
-                namespace: $scope.namespace
-            }, usecaseAdapterFactory($scope));
-        }
-
-        i18nMessageWriter({
-            id: 'description',
-            key: getUnlocalizedPath() + '.seo.description',
-            message: $scope.seo.input.description,
-            namespace: $scope.namespace
-        }, usecaseAdapterFactory($scope));
-
-        $modalInstance.close($scope.seo.input);
     }
 }
