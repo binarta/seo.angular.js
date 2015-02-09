@@ -112,7 +112,7 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, $rootScope, ac
                             '</div>' +
 
                             '<div class=\"form-group\">' +
-                            '<label for=\"inputDescription\">Paginabescrijving</label>' +
+                            '<label for=\"inputDescription\">Paginabeschrijving</label>' +
                             '<textarea id=\"inputDescription\" ng-model=\"seo.description\"></textarea>' +
                             '<small><i class=\"fa fa-info-circle\"></i> Maak de beschrijving niet langer dan 160 tekens.</small>' +
                             '</div>' +
