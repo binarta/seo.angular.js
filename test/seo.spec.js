@@ -159,16 +159,12 @@ describe('seo', function () {
                         });
 
                         it('editModeRenderer is called', function () {
-                            expect(editModeRendererSpy).toEqual({
-                                ctx: {
-                                    close: jasmine.any(Function)
-                                },
-                                template: jasmine.any(String)
-                            });
+                            expect(editModeRendererSpy.template).toEqual(jasmine.any(String));
+                            expect(editModeRendererSpy.scope.close).toEqual(jasmine.any(Function));
                         });
 
                         it('and close is called', function () {
-                            editModeRendererSpy.ctx.close();
+                            editModeRendererSpy.scope.close();
 
                             expect(editModeRendererClosed).toBeTruthy();
                         });
@@ -180,24 +176,18 @@ describe('seo', function () {
                         });
 
                         it('editModeRenderer is called', function () {
-                            expect(editModeRendererSpy).toEqual({
-                                ctx: {
-                                    seo: $rootScope.seo,
-                                    save: jasmine.any(Function),
-                                    close: jasmine.any(Function)
-                                },
-                                template: jasmine.any(String)
-                            });
+                            expect(editModeRendererSpy.template).toEqual(jasmine.any(String));
+                            expect(editModeRendererSpy.scope.seo).toEqual($rootScope.seo);
                         });
 
                         it('and close is called', function () {
-                            editModeRendererSpy.ctx.close();
+                            editModeRendererSpy.scope.close();
 
                             expect(editModeRendererClosed).toBeTruthy();
                         });
 
                         it('and save is called', function () {
-                            editModeRendererSpy.ctx.save('new values');
+                            editModeRendererSpy.scope.save('new values');
 
                             expect(seoSupportSpy).toEqual('new values');
                             expect(editModeRendererClosed).toBeTruthy();
