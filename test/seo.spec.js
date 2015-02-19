@@ -1,51 +1,52 @@
 describe('seo', function () {
-    angular.module('i18n', []).service('i18n', ['$q', function ($q) {
-        this.resolveSpy = {};
-        this.updateSpy = {};
+    var locale = 'en';
 
-        this.resolve = function (ctx) {
-            var deferred = $q.defer();
+    angular.module('i18n', [])
+        .service('i18n', ['$q', function ($q) {
+            this.resolveSpy = {};
+            this.updateSpy = {};
 
-            this.resolveSpy[ctx.code] = ctx.default;
+            this.resolve = function (ctx) {
+                var deferred = $q.defer();
 
-            deferred.resolve(ctx.default);
-            return deferred.promise;
-        };
-        this.translate = function (ctx) {
-            var deferred = $q.defer();
+                this.resolveSpy[ctx.code] = this.updateSpy[ctx.code] || ctx.default;
 
-            this.updateSpy[ctx.code] = ctx.translation;
+                deferred.resolve(ctx.default);
+                return deferred.promise;
+            };
+            this.translate = function (ctx) {
+                var deferred = $q.defer();
 
-            deferred.resolve('ok');
-            return deferred.promise;
-        };
-    }]);
+                this.updateSpy[ctx.code] = ctx.translation;
+
+                deferred.resolve('ok');
+                return deferred.promise;
+            };
+        }])
+        .factory('localeResolver', function () {
+            return function () {
+                return locale;
+            };
+        });
 
     beforeEach(module('seo'));
-    beforeEach(module('notifications'));
-    beforeEach(module('config'));
     beforeEach(module('i18n'));
 
     describe('seoSupport service', function () {
         var seoSupport,
             i18n,
             $rootScope,
-            registry,
+            $location,
             defaultTitle = 'Powered by Binarta',
-            path = '/test/path',
-            locale = 'en';
+            path = '/test/path';
 
-        beforeEach(inject(function ($location) {
-            $location.path(path + '/' + locale);
-        }));
-
-        beforeEach(inject(function(_seoSupport_, _i18n_, _$rootScope_, topicRegistryMock) {
+        beforeEach(inject(function(_seoSupport_, _i18n_, _$rootScope_, _$location_) {
             seoSupport = _seoSupport_;
             i18n = _i18n_;
             $rootScope = _$rootScope_;
-            registry = topicRegistryMock;
-            registry['i18n.locale'](locale);
+            $location = _$location_;
 
+            $location.path(path + '/' + locale);
             seoSupport.resolve();
             $rootScope.$digest();
         }));
@@ -66,11 +67,16 @@ describe('seo', function () {
 
 
         describe('when updated', function () {
+            var newPath = '/new/path';
+
             beforeEach(function () {
+                $location.path(newPath + '/' + locale);
+
                 seoSupport.update({
                     defaultTitle: 'default title',
                     title: 'title',
-                    description: 'description'
+                    description: 'description',
+                    pageCode: newPath
                 });
 
                 $rootScope.$digest();
@@ -78,24 +84,26 @@ describe('seo', function () {
 
             it('i18n messages are translated', function () {
                 expect(i18n.updateSpy['seo.title.default']).toEqual('default title');
-                expect(i18n.updateSpy[path + '.seo.title']).toEqual('title');
-                expect(i18n.updateSpy[path + '.seo.description']).toEqual('description');
+                expect(i18n.updateSpy[newPath + '.seo.title']).toEqual('title');
+                expect(i18n.updateSpy[newPath + '.seo.description']).toEqual('description');
             });
 
             it('values are on rootScope', function () {
-                expect($rootScope.seo).toEqual({
-                    defaultTitle: 'default title',
-                    title: 'title',
-                    description: 'description'
-                });
+                expect(i18n.resolveSpy['seo.title.default']).toEqual('default title');
+                expect(i18n.resolveSpy[newPath + '.seo.title']).toEqual('title');
+                expect(i18n.resolveSpy[newPath + '.seo.description']).toEqual('description');
             });
+        });
+
+        it('get pageCode', function () {
+            expect(seoSupport.getPageCode()).toEqual(path);
         });
     });
 
 
     describe('seoSupport directive', function () {
         var directive, editModeRendererSpy, editModeRendererClosed, seoSupportSpy, $rootScope, scope,
-            permissionNo, permissionYes, permission;
+            permissionNo, permissionYes, permission, pageCode;
 
         beforeEach(inject(function (_$rootScope_) {
             $rootScope = _$rootScope_;
@@ -115,9 +123,13 @@ describe('seo', function () {
                 }
             };
 
+            pageCode = '/page/code';
             var seoSupport = {
                 update: function (args) {
                     seoSupportSpy = args;
+                },
+                getPageCode: function () {
+                    return pageCode;
                 }
             };
 
@@ -177,7 +189,13 @@ describe('seo', function () {
 
                         it('editModeRenderer is called', function () {
                             expect(editModeRendererSpy.template).toEqual(jasmine.any(String));
-                            expect(editModeRendererSpy.scope.seo).toEqual($rootScope.seo);
+                            expect(editModeRendererSpy.scope.seo.defaultTitle).toEqual($rootScope.seo.defaultTitle);
+                            expect(editModeRendererSpy.scope.seo.title).toEqual($rootScope.seo.title);
+                            expect(editModeRendererSpy.scope.seo.description).toEqual($rootScope.seo.description);
+                        });
+
+                        it('and pageCode is set to seo', function () {
+                            expect(editModeRendererSpy.scope.seo.pageCode).toEqual(pageCode);
                         });
 
                         it('and close is called', function () {

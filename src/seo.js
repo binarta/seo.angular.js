@@ -1,5 +1,5 @@
 angular.module('seo', [])
-    .service('seoSupport', ['i18n', '$location', 'topicRegistry', '$q', '$rootScope', SeoSupportService])
+    .service('seoSupport', ['i18n', '$location', '$q', '$rootScope', 'localeResolver', SeoSupportService])
     .directive('seoSupport', ['editModeRenderer', 'seoSupport', '$rootScope', 'activeUserHasPermission', seoSupportDirectiveFactory])
     .run(['seoSupport', '$rootScope', function (seoSupport, $rootScope) {
         $rootScope.$on('$routeChangeSuccess', function () {
@@ -7,18 +7,12 @@ angular.module('seo', [])
         });
     }]);
 
-function SeoSupportService(i18n, $location, topicRegistry, $q, $rootScope) {
-    var locale;
+function SeoSupportService(i18n, $location, $q, $rootScope, localeResolver) {
+    var self = this;
 
-    $rootScope.seo = {};
-
-    topicRegistry.subscribe('i18n.locale', function (l) {
-        locale = l;
-    });
-
-    function getUnlocalizedPath() {
-        return $location.path().replace('/' + locale, '');
-    }
+    this.getPageCode = function () {
+        return $location.path().replace('/' + localeResolver(), '');
+    };
 
     this.update = function (args) {
         $q.all([
@@ -27,15 +21,15 @@ function SeoSupportService(i18n, $location, topicRegistry, $q, $rootScope) {
                 translation: args.defaultTitle
             }),
             i18n.translate({
-                code: getUnlocalizedPath() + '.seo.title',
+                code: args.pageCode + '.seo.title',
                 translation: args.title
             }),
             i18n.translate({
-                code: getUnlocalizedPath() + '.seo.description',
+                code: args.pageCode + '.seo.description',
                 translation: args.description
             })
         ]).then(function () {
-            $rootScope.seo = args;
+            self.resolve();
         });
     };
 
@@ -46,11 +40,11 @@ function SeoSupportService(i18n, $location, topicRegistry, $q, $rootScope) {
                 default: 'Powered by Binarta'
             }),
             i18n.resolve({
-                code: getUnlocalizedPath() + '.seo.title',
+                code: self.getPageCode() + '.seo.title',
                 default: ' '
             }),
             i18n.resolve({
-                code: getUnlocalizedPath() + '.seo.description',
+                code: self.getPageCode() + '.seo.description',
                 default: ' '
             })
         ]).then(function (result) {
@@ -68,17 +62,6 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, $rootScope, ac
         restrict: 'A',
         scope: true,
         link: function (scope) {
-            scope.close = function () {
-                editModeRenderer.close();
-            };
-            
-            scope.save = function (args) {
-                seoSupport.update(args);
-                editModeRenderer.close();
-            };
-            
-            scope.seo = angular.copy($rootScope.seo);
-
             scope.open = function () {
                 activeUserHasPermission({
                     no: function () {
@@ -94,6 +77,9 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, $rootScope, ac
                         });
                     },
                     yes: function () {
+                        scope.seo = angular.copy($rootScope.seo);
+                        scope.seo.pageCode = seoSupport.getPageCode();
+
                         editModeRenderer.open({
                             template: '<form>' +
                             '<div class="form-group">' +
@@ -120,8 +106,17 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, $rootScope, ac
                             '</div>',
                             scope: scope
                         });
+
+                        scope.save = function (args) {
+                            seoSupport.update(args);
+                            editModeRenderer.close();
+                        };
                     }
                 }, 'seo.edit');
+
+                scope.close = function () {
+                    editModeRenderer.close();
+                };
             };
         }
     }
