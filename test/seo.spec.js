@@ -29,6 +29,13 @@ describe('seo', function () {
             };
         });
 
+    angular.module('config', [])
+        .service('config', function () {
+            this.namespace = 'namespace'
+        });
+
+    angular.module('toggle.edit.mode', []);
+    angular.module('checkpoint', []);
     beforeEach(module('seo'));
     beforeEach(module('i18n'));
 
@@ -37,42 +44,58 @@ describe('seo', function () {
             i18n,
             $rootScope,
             $location,
+            defaultSiteName = 'Namespace',
             defaultTitle = 'Powered by Binarta',
-            path = '/test/path';
+            path = '/test/path',
+            head;
 
-        beforeEach(inject(function(_seoSupport_, _i18n_, _$rootScope_, _$location_) {
+        beforeEach(inject(function(_seoSupport_, _i18n_, _$rootScope_, _$location_, $document) {
             seoSupport = _seoSupport_;
             i18n = _i18n_;
             $rootScope = _$rootScope_;
             $location = _$location_;
+            head = $document.find('head');
 
             $location.path(path + '/' + locale);
             seoSupport.resolve();
             $rootScope.$digest();
         }));
 
-        it('i18n message are resolved', function () {
+        it('default message are resolved', function () {
+            expect(i18n.resolveSpy['seo.site.name']).toEqual(defaultSiteName);
             expect(i18n.resolveSpy['seo.title.default']).toEqual(defaultTitle);
             expect(i18n.resolveSpy[path + '.seo.title']).toEqual(' ');
             expect(i18n.resolveSpy[path + '.seo.description']).toEqual(' ');
+            expect(i18n.resolveSpy[path + '.seo.meta.type']).toEqual('website');
+            expect(i18n.resolveSpy[path + '.seo.meta.image']).toEqual(' ');
         });
 
-        it('put default seo values on rootScope', function () {
-            expect($rootScope.seo).toEqual({
+        it('seo values are available', function () {
+            expect(seoSupport.seo).toEqual({
+                siteName: defaultSiteName,
                 defaultTitle: defaultTitle,
                 title: '',
-                description: ''
+                description: '',
+                meta: {
+                    type: 'website',
+                    image: ''
+                }
             });
         });
 
+        it('title element is updated', function () {
+            var title = head.find('title');
+            expect(title[0].innerText).toEqual(defaultTitle + ' | ' + defaultSiteName);
+        });
 
-        describe('when updated', function () {
+        describe('on update', function () {
             var newPath = '/new/path';
 
             beforeEach(function () {
                 $location.path(newPath + '/' + locale);
 
                 seoSupport.update({
+                    siteName: 'site name',
                     defaultTitle: 'default title',
                     title: 'title',
                     description: 'description',
@@ -82,13 +105,15 @@ describe('seo', function () {
                 $rootScope.$digest();
             });
 
-            it('i18n messages are translated', function () {
+            it('messages are translated', function () {
+                expect(i18n.updateSpy['seo.site.name']).toEqual('site name');
                 expect(i18n.updateSpy['seo.title.default']).toEqual('default title');
                 expect(i18n.updateSpy[newPath + '.seo.title']).toEqual('title');
                 expect(i18n.updateSpy[newPath + '.seo.description']).toEqual('description');
             });
 
-            it('values are on rootScope', function () {
+            it('values are available', function () {
+                expect(i18n.resolveSpy['seo.site.name']).toEqual('site name');
                 expect(i18n.resolveSpy['seo.title.default']).toEqual('default title');
                 expect(i18n.resolveSpy[newPath + '.seo.title']).toEqual('title');
                 expect(i18n.resolveSpy[newPath + '.seo.description']).toEqual('description');
@@ -98,21 +123,60 @@ describe('seo', function () {
         it('get pageCode', function () {
             expect(seoSupport.getPageCode()).toEqual(path);
         });
+
+        describe('on update title', function () {
+            beforeEach(function () {
+                seoSupport.updateTitle('new value');
+                $rootScope.$digest();
+            });
+
+            it('message is translated', function () {
+                expect(i18n.updateSpy[path + '.seo.title']).toEqual('new value');
+            });
+        });
+
+        describe('on update description', function () {
+            beforeEach(function () {
+                seoSupport.updateDescription('new value');
+                $rootScope.$digest();
+            });
+
+            it('message is translated', function () {
+                expect(i18n.updateSpy[path + '.seo.description']).toEqual('new value');
+            });
+        });
+
+        describe('on update meta type', function () {
+            beforeEach(function () {
+                seoSupport.updateMetaType('new value');
+                $rootScope.$digest();
+            });
+
+            it('message is translated', function () {
+                expect(i18n.updateSpy[path + '.seo.meta.type']).toEqual('new value');
+            });
+        });
+
+        describe('on update meta image', function () {
+            beforeEach(function () {
+                seoSupport.updateMetaImage('new value');
+                $rootScope.$digest();
+            });
+
+            it('message is translated', function () {
+                expect(i18n.updateSpy[path + '.seo.meta.image']).toEqual('new value');
+            });
+        });
     });
 
 
     describe('seoSupport directive', function () {
-        var directive, editModeRendererSpy, editModeRendererClosed, seoSupportSpy, $rootScope, scope,
+        var directive, editModeRendererSpy, editModeRendererClosed, seoSupportSpy, $rootScope, seoSupport, scope,
             permissionNo, permissionYes, permission, pageCode;
 
         beforeEach(inject(function (_$rootScope_) {
             $rootScope = _$rootScope_;
             scope = $rootScope.$new();
-            $rootScope.seo = {
-                defaultTitle: 'default title',
-                title: 'title',
-                description: 'description'
-            };
 
             var editModeRenderer = {
                 open: function (args) {
@@ -124,7 +188,10 @@ describe('seo', function () {
             };
 
             pageCode = '/page/code';
-            var seoSupport = {
+            seoSupport = {
+                seo: {
+                    values: 'foo'
+                },
                 update: function (args) {
                     seoSupportSpy = args;
                 },
@@ -139,7 +206,7 @@ describe('seo', function () {
                 permission = p;
             };
 
-            directive = seoSupportDirectiveFactory(editModeRenderer, seoSupport, $rootScope, activeUserHasPermission);
+            directive = seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasPermission);
         }));
 
         it('restrict to attribute', function () {
@@ -189,9 +256,7 @@ describe('seo', function () {
 
                         it('editModeRenderer is called', function () {
                             expect(editModeRendererSpy.template).toEqual(jasmine.any(String));
-                            expect(editModeRendererSpy.scope.seo.defaultTitle).toEqual($rootScope.seo.defaultTitle);
-                            expect(editModeRendererSpy.scope.seo.title).toEqual($rootScope.seo.title);
-                            expect(editModeRendererSpy.scope.seo.description).toEqual($rootScope.seo.description);
+                            expect(editModeRendererSpy.scope.seo.values).toEqual(seoSupport.seo.values);
                         });
 
                         it('and pageCode is set to seo', function () {

@@ -1,14 +1,17 @@
-angular.module('seo', [])
-    .service('seoSupport', ['i18n', '$location', '$q', '$rootScope', 'localeResolver', SeoSupportService])
-    .directive('seoSupport', ['editModeRenderer', 'seoSupport', '$rootScope', 'activeUserHasPermission', seoSupportDirectiveFactory])
+angular.module('seo', ['i18n', 'config', 'toggle.edit.mode', 'checkpoint'])
+    .service('seoSupport', ['i18n', '$location', '$q', 'localeResolver', '$document', 'config', SeoSupportService])
+    .directive('seoSupport', ['editModeRenderer', 'seoSupport', 'activeUserHasPermission', seoSupportDirectiveFactory])
     .run(['seoSupport', '$rootScope', function (seoSupport, $rootScope) {
         $rootScope.$on('$routeChangeSuccess', function () {
             seoSupport.resolve();
         });
     }]);
 
-function SeoSupportService(i18n, $location, $q, $rootScope, localeResolver) {
+function SeoSupportService(i18n, $location, $q, localeResolver, $document, config) {
     var self = this;
+    var head = $document.find('head');
+
+    this.seo = {};
 
     this.getPageCode = function () {
         return $location.path().replace('/' + localeResolver(), '');
@@ -16,6 +19,10 @@ function SeoSupportService(i18n, $location, $q, $rootScope, localeResolver) {
 
     this.update = function (args) {
         $q.all([
+            i18n.translate({
+                code: 'seo.site.name',
+                translation: args.siteName
+            }),
             i18n.translate({
                 code: 'seo.title.default',
                 translation: args.defaultTitle
@@ -33,8 +40,40 @@ function SeoSupportService(i18n, $location, $q, $rootScope, localeResolver) {
         });
     };
 
+    this.updateTitle = function (title) {
+        i18n.translate({
+            code: self.getPageCode() + '.seo.title',
+            translation: title
+        });
+    };
+
+    this.updateDescription = function (description) {
+        i18n.translate({
+            code: self.getPageCode() + '.seo.description',
+            translation: description
+        });
+    };
+
+    this.updateMetaType = function (type) {
+        i18n.translate({
+            code: self.getPageCode() + '.seo.meta.type',
+            translation: type
+        });
+    };
+
+    this.updateMetaImage = function (image) {
+        i18n.translate({
+            code: self.getPageCode() + '.seo.meta.image',
+            translation: image
+        });
+    };
+
     this.resolve = function () {
         $q.all([
+            i18n.resolve({
+                code: 'seo.site.name',
+                default: isPublished() ? getNamespace() : 'Binarta'
+            }),
             i18n.resolve({
                 code: 'seo.title.default',
                 default: 'Powered by Binarta'
@@ -46,18 +85,78 @@ function SeoSupportService(i18n, $location, $q, $rootScope, localeResolver) {
             i18n.resolve({
                 code: self.getPageCode() + '.seo.description',
                 default: ' '
+            }),
+            i18n.resolve({
+                code: self.getPageCode() + '.seo.meta.type',
+                default: 'website'
+            }),
+            i18n.resolve({
+                code: self.getPageCode() + '.seo.meta.image',
+                default: ' '
             })
         ]).then(function (result) {
-            $rootScope.seo = {
-                defaultTitle: result[0],
-                title: result[1].trim(),
-                description: result[2].trim()
+            self.seo = {
+                siteName: result[0].trim(),
+                defaultTitle: result[1].trim(),
+                title: result[2].trim(),
+                description: result[3].trim(),
+                meta: {
+                    type: result[4].trim(),
+                    image: result[5].trim()
+                }
             };
+
+            UpdateTitleElement(self.seo);
+            UpdateDescriptionElement(self.seo);
+            UpdateMetaTags(self.seo);
         });
     };
+
+    function UpdateTitleElement(seo) {
+        var element = head.find('title');
+        var title = (seo.title || seo.defaultTitle) + (seo.siteName ? ' | ' + seo.siteName : '');
+        if (element.length == 1) element[0].innerText = title;
+        else head.prepend('<title>' + title + '</title>');
+    }
+
+    function UpdateDescriptionElement(seo) {
+        var element = head.find('meta[name="description"]');
+        if (element.length == 1) element[0].content = seo.description;
+        else head.prepend('<meta name="description" content="' + seo.description + '">');
+    }
+
+    function UpdateMetaTags(seo) {
+        UpdateOpenGraphMetaTag('og:title', (seo.title || seo.defaultTitle));
+        UpdateOpenGraphMetaTag('og:type', seo.meta.type);
+        UpdateOpenGraphMetaTag('og:site_name', seo.siteName);
+        UpdateOpenGraphMetaTag('og:description', seo.description);
+        UpdateOpenGraphMetaTag('og:url', $location.absUrl());
+        UpdateOpenGraphMetaTag('og:image', seo.meta.image);
+    }
+
+    function UpdateOpenGraphMetaTag(property, content) {
+        var element = head.find('meta[property="' + property + '"]');
+        if (element.length == 1) {
+            if (content) element[0].content = content;
+            else element[0].remove();
+        }
+        else {
+            if (content) head.append('<meta property="' + property + '" content="' + content + '">');
+        }
+    }
+
+    function getNamespace() {
+        return config.namespace.charAt(0).toUpperCase() + config.namespace.substring(1);
+    }
+
+    function isPublished() {
+        var host = $location.host();
+        var hostToCheck = 'binarta.com';
+        return host.indexOf(hostToCheck, host.length - hostToCheck.length) == -1;
+    }
 }
 
-function seoSupportDirectiveFactory(editModeRenderer, seoSupport, $rootScope, activeUserHasPermission) {
+function seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasPermission) {
     return {
         restrict: 'A',
         scope: true,
@@ -77,12 +176,18 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, $rootScope, ac
                         });
                     },
                     yes: function () {
-                        scope.seo = angular.copy($rootScope.seo);
+                        scope.seo = angular.copy(seoSupport.seo);
                         scope.seo.pageCode = seoSupport.getPageCode();
 
                         editModeRenderer.open({
                             template: '<form>' +
                             '<div class="form-group">' +
+
+                            '<div class="form-group">' +
+                            '<label for="inputSiteName">Merknaam of naam van je website</label>' +
+                            '<input type="text" id="inputSiteName" ng-model="seo.siteName">' +
+                            '</div>' +
+
                             '<label for="inputDefaultTitle">Standaard paginatitel</label>' +
                             '<input type="text" id="inputDefaultTitle" ng-model="seo.defaultTitle">' +
                             '<small><i class="fa fa-info-circle"></i> Wordt gebruikt als er geen pagina specifieke titel is gedefinieerd.</small>' +
@@ -91,7 +196,7 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, $rootScope, ac
                             '<div class="form-group">' +
                             '<label for="inputTitle">Paginatitel</label>' +
                             '<input type="text" id="inputTitle" ng-model="seo.title">' +
-                            '<small><i class="fa fa-info-circle"></i> Maak de titel niet langer dan 60 tekens in het formaat "Primair trefwoord - Secundair trefwoord | Merknaam".</small>' +
+                            '<small><i class="fa fa-info-circle"></i> Maak de titel niet langer dan 60 tekens.</small>' +
                             '</div>' +
 
                             '<div class="form-group">' +
