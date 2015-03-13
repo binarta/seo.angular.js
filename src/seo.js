@@ -138,7 +138,7 @@ function SeoSupportService(i18n, $location, $q, localeResolver, $document, confi
         var element = head.find('meta[property="' + property + '"]');
         if (element.length == 1) {
             if (content) element[0].content = content;
-            else element[0].remove();
+            else element.remove();
         }
         else {
             if (content) head.append('<meta property="' + property + '" content="' + content + '">');
