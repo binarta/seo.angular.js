@@ -1,0 +1,46 @@
+{
+  "msgs":{
+    "default":{
+      "seo.menu.unavailable.message": "Vanaf een Essential abonnement kun je de titel en omschrijving van al je pagina's aanpassen. Zo zorg je ervoor dat je pagina's mooi worden weergegeven in de zoekresultaten.",
+      "seo.menu.close.button": "Sluiten",
+      "seo.menu.upgrade.button": "Upgraden",
+      "seo.menu.save.button": "Opslaan",
+      "seo.menu.cancel.button": "Annuleren",
+      "seo.menu.site.name.label": "Merknaam of naam van je website",
+      "seo.menu.default.title.label": "Standaard paginatitel",
+      "seo.menu.default.title.info": "Wordt gebruikt als er geen pagina specifieke titel is gedefinieerd.",
+      "seo.menu.title.label": "Paginatitel",
+      "seo.menu.title.info": "Voor een goede weergave in de zoekresultaten, maak de titel niet langer dan 60 tekens.",
+      "seo.menu.description.label": "Paginabeschrijving",
+      "seo.menu.description.info": "Voor een goede weergave in de zoekresultaten, maak de beschrijving niet langer dan 160 tekens."
+    },
+    "nl":{
+      "seo.menu.unavailable.message": "Vanaf een Essential abonnement kun je de titel en omschrijving van al je pagina's aanpassen. Zo zorg je ervoor dat je pagina's mooi worden weergegeven in de zoekresultaten.",
+      "seo.menu.close.button": "Sluiten",
+      "seo.menu.upgrade.button": "Upgraden",
+      "seo.menu.save.button": "Opslaan",
+      "seo.menu.cancel.button": "Annuleren",
+      "seo.menu.site.name.label": "Merknaam of naam van je website",
+      "seo.menu.default.title.label": "Standaard paginatitel",
+      "seo.menu.default.title.info": "Wordt gebruikt als er geen pagina specifieke titel is gedefinieerd.",
+      "seo.menu.title.label": "Paginatitel",
+      "seo.menu.title.info": "Voor een goede weergave in de zoekresultaten, maak de titel niet langer dan 60 tekens.",
+      "seo.menu.description.label": "Paginabeschrijving",
+      "seo.menu.description.info": "Voor een goede weergave in de zoekresultaten, maak de beschrijving niet langer dan 160 tekens."
+    },
+    "en":{
+      "seo.menu.unavailable.message": "Upgrade to our Essential subscription to define the title and description of all your pages in order to rank higher in search engines like Google.",
+      "seo.menu.close.button": "Close",
+      "seo.menu.upgrade.button": "Upgrade",
+      "seo.menu.save.button": "Save",
+      "seo.menu.cancel.button": "Cancel",
+      "seo.menu.site.name.label": "Brand name or site name",
+      "seo.menu.default.title.label": "Default page title",
+      "seo.menu.default.title.info": "This title will be used when no other page title is defined.",
+      "seo.menu.title.label": "Page title",
+      "seo.menu.title.info": "Keep your title below 60 characters to make sure it is displayed properly in the search results.",
+      "seo.menu.description.label": "Page description",
+      "seo.menu.description.info": "Keep your description below 160 characters to make sure it is displayed properly in the search results."
+    }
+  }
+}
