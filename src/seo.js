@@ -165,12 +165,10 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasP
                 activeUserHasPermission({
                     no: function () {
                         editModeRenderer.open({
-                            template: '<form><p>Vanaf een Essential abonnement kun je de titel en omschrijving ' +
-                            "van al je pagina's aanpassen. Zo zorg je ervoor dat je pagina's mooi worden " +
-                            'weergegeven in de zoekresultaten.</p></form>' +
+                            template: '<form><p i18n code="seo.menu.unavailable.message" read-only>{{var}}</p></form>' +
                             '<div class="dropdown-menu-buttons">' +
-                            '<a class="btn btn-success" href="https://binarta.com/#!/applications" target="_blank">Upgraden</a>' +
-                            '<button type="reset" class="btn btn-default" ng-click="close()">Sluiten</button>' +
+                            '<a class="btn btn-success" href="https://binarta.com/#!/applications" target="_blank" i18n code="seo.menu.upgrade.button" read-only>{{var}}</a>' +
+                            '<button type="reset" class="btn btn-default" ng-click="close()" i18n code="seo.menu.close.button" read-only>{{var}}</button>' +
                             '</div>',
                             scope: scope
                         });
@@ -184,30 +182,30 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasP
                             '<div class="form-group">' +
 
                             '<div class="form-group">' +
-                            '<label for="inputSiteName">Merknaam of naam van je website</label>' +
+                            '<label for="inputSiteName" i18n code="seo.menu.site.name.label" read-only>{{var}}</label>' +
                             '<input type="text" id="inputSiteName" ng-model="seo.siteName">' +
                             '</div>' +
 
-                            '<label for="inputDefaultTitle">Standaard paginatitel</label>' +
+                            '<label for="inputDefaultTitle" i18n code="seo.menu.default.title.label" read-only>{{var}}</label>' +
                             '<input type="text" id="inputDefaultTitle" ng-model="seo.defaultTitle">' +
-                            '<small><i class="fa fa-info-circle"></i> Wordt gebruikt als er geen pagina specifieke titel is gedefinieerd.</small>' +
+                            '<small i18n code="seo.menu.default.title.info" read-only><i class="fa fa-info-circle"></i> {{var}}</small>' +
                             '</div>' +
 
                             '<div class="form-group">' +
-                            '<label for="inputTitle">Paginatitel</label>' +
+                            '<label for="inputTitle" i18n code="seo.menu.title.label" read-only>{{var}}</label>' +
                             '<input type="text" id="inputTitle" ng-model="seo.title">' +
-                            '<small><i class="fa fa-info-circle"></i> Maak de titel niet langer dan 60 tekens.</small>' +
+                            '<small i18n code="seo.menu.title.info" read-only><i class="fa fa-info-circle"></i> {{var}}</small>' +
                             '</div>' +
 
                             '<div class="form-group">' +
-                            '<label for="inputDescription">Paginabeschrijving</label>' +
+                            '<label for="inputDescription" i18n code="seo.menu.description.label" read-only>{{var}}</label>' +
                             '<textarea id="inputDescription" ng-model="seo.description"></textarea>' +
-                            '<small><i class="fa fa-info-circle"></i> Maak de beschrijving niet langer dan 160 tekens.</small>' +
+                            '<small i18n code="seo.menu.description.info" read-only><i class="fa fa-info-circle"></i> {{var}}</small>' +
                             '</div>' +
                             '</form>' +
                             '<div class="dropdown-menu-buttons">' +
-                            '<button type="submit" class="btn btn-primary" ng-click="save(seo)">Opslaan</button>' +
-                            '<button type="reset" class="btn btn-default" ng-click="close()">Annuleren</button>' +
+                            '<button type="submit" class="btn btn-primary" ng-click="save(seo)" i18n code="seo.menu.save.button" read-only>{{var}}</button>' +
+                            '<button type="reset" class="btn btn-default" ng-click="close()" i18n code="seo.menu.cancel.button" read-only>{{var}}</button>' +
                             '</div>',
                             scope: scope
                         });
