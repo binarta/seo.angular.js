@@ -115,7 +115,7 @@ function SeoSupportService(i18n, $location, $q, localeResolver, $document, confi
     function UpdateTitleElement(seo) {
         var element = head.find('title');
         var title = (seo.title || seo.defaultTitle) + (seo.siteName ? ' | ' + seo.siteName : '');
-        if (element.length == 1) element[0].innerText = title;
+        if (element.length == 1) element[0].textContent = title;
         else head.prepend('<title>' + title + '</title>');
     }
 
