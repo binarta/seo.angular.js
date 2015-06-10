@@ -162,6 +162,11 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasP
         scope: true,
         link: function (scope) {
             scope.open = function () {
+                var rendererScope = scope.$new();
+                rendererScope.close = function () {
+                    editModeRenderer.close();
+                };
+
                 activeUserHasPermission({
                     no: function () {
                         editModeRenderer.open({
@@ -170,12 +175,12 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasP
                             '<a class="btn btn-success" href="https://binarta.com/#!/applications" target="_blank" i18n code="seo.menu.upgrade.button" read-only>{{var}}</a>' +
                             '<button type="reset" class="btn btn-default" ng-click="close()" i18n code="seo.menu.close.button" read-only>{{var}}</button>' +
                             '</div>',
-                            scope: scope
+                            scope: rendererScope
                         });
                     },
                     yes: function () {
-                        scope.seo = angular.copy(seoSupport.seo);
-                        scope.seo.pageCode = seoSupport.getPageCode();
+                        rendererScope.seo = angular.copy(seoSupport.seo);
+                        rendererScope.seo.pageCode = seoSupport.getPageCode();
 
                         editModeRenderer.open({
                             template: '<form>' +
@@ -207,19 +212,15 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasP
                             '<button type="submit" class="btn btn-primary" ng-click="save(seo)" i18n code="seo.menu.save.button" read-only>{{var}}</button>' +
                             '<button type="reset" class="btn btn-default" ng-click="close()" i18n code="seo.menu.cancel.button" read-only>{{var}}</button>' +
                             '</div>',
-                            scope: scope
+                            scope: rendererScope
                         });
 
-                        scope.save = function (args) {
+                        rendererScope.save = function (args) {
                             seoSupport.update(args);
                             editModeRenderer.close();
                         };
                     }
                 }, 'seo.edit');
-
-                scope.close = function () {
-                    editModeRenderer.close();
-                };
             };
         }
     }

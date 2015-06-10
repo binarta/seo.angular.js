@@ -239,6 +239,7 @@ describe('seo', function () {
 
                         it('editModeRenderer is called', function () {
                             expect(editModeRendererSpy.template).toEqual(jasmine.any(String));
+                            expect(editModeRendererSpy.scope.$parent).toEqual(scope);
                             expect(editModeRendererSpy.scope.close).toEqual(jasmine.any(Function));
                         });
 
@@ -256,6 +257,7 @@ describe('seo', function () {
 
                         it('editModeRenderer is called', function () {
                             expect(editModeRendererSpy.template).toEqual(jasmine.any(String));
+                            expect(editModeRendererSpy.scope.$parent).toEqual(scope);
                             expect(editModeRendererSpy.scope.seo.values).toEqual(seoSupport.seo.values);
                         });
 
