@@ -2,12 +2,11 @@
   "name": "binarta.seo.angular",
   "main": [
     "./src/seo.js",
-    "./metadata.json",
     "./metadata-system.json"
   ],
   "dependencies": {
     "angular": "1.3.*",
-    "binarta.i18n.angular": "0.*.*",
+    "binarta.i18n.angular": "1.*.*",
     "binarta.config.angular": "0.*.*",
     "binarta.checkpoint.angular": "0.*.*",
     "binarta.toggle.edit.mode.angular": "1.*.*"
