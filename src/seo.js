@@ -1,5 +1,5 @@
-angular.module('seo', ['i18n', 'config', 'toggle.edit.mode', 'checkpoint'])
-    .service('seoSupport', ['i18n', '$location', '$q', 'localeResolver', '$document', 'config', SeoSupportService])
+angular.module('seo', ['i18n', 'config', 'toggle.edit.mode', 'checkpoint', 'ngRoute'])
+    .service('seoSupport', ['i18n', '$location', '$q', '$routeParams', '$document', 'config', SeoSupportService])
     .directive('seoSupport', ['editModeRenderer', 'seoSupport', 'activeUserHasPermission', seoSupportDirectiveFactory])
     .run(['seoSupport', '$rootScope', function (seoSupport, $rootScope) {
         $rootScope.$on('$routeChangeSuccess', function () {
@@ -7,14 +7,15 @@ angular.module('seo', ['i18n', 'config', 'toggle.edit.mode', 'checkpoint'])
         });
     }]);
 
-function SeoSupportService(i18n, $location, $q, localeResolver, $document, config) {
+function SeoSupportService(i18n, $location, $q, $routeParams, $document, config) {
     var self = this;
     var head = $document.find('head');
 
     this.seo = {};
 
     this.getPageCode = function () {
-        return $location.path().replace('/' + localeResolver(), '');
+        var path = $location.path();
+        return $routeParams.locale ? path.replace('/' + $routeParams.locale, '') : path;
     };
 
     this.update = function (args) {
@@ -172,7 +173,7 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasP
                         editModeRenderer.open({
                             template: '<form><p i18n code="seo.menu.unavailable.message" read-only>{{var}}</p></form>' +
                             '<div class="dropdown-menu-buttons">' +
-                            '<a class="btn btn-success" href="https://binarta.com/#!/applications" target="_blank" i18n code="seo.menu.upgrade.button" read-only>{{var}}</a>' +
+                            '<a class="btn btn-success" href="https://binarta.com/applications" target="_blank" i18n code="seo.menu.upgrade.button" read-only>{{var}}</a>' +
                             '<button type="reset" class="btn btn-default" ng-click="close()" i18n code="seo.menu.close.button" read-only>{{var}}</button>' +
                             '</div>',
                             scope: rendererScope

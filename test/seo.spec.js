@@ -49,7 +49,7 @@ describe('seo', function () {
             path = '/test/path',
             head;
 
-        beforeEach(inject(function(_seoSupport_, _i18n_, _$rootScope_, _$location_, $document) {
+        beforeEach(inject(function(_seoSupport_, _i18n_, _$rootScope_, _$location_, $document, $routeParams) {
             seoSupport = _seoSupport_;
             i18n = _i18n_;
             $rootScope = _$rootScope_;
@@ -57,6 +57,7 @@ describe('seo', function () {
             head = $document.find('head');
 
             $location.path(path + '/' + locale);
+            $routeParams.locale = locale;
             seoSupport.resolve();
             $rootScope.$digest();
         }));
