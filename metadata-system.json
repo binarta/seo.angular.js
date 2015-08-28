@@ -1,7 +1,7 @@
 {
   "msgs":{
     "nl":{
-      "seo.menu.unavailable.message": "Vanaf een Essential abonnement kun je de titel en omschrijving van al je pagina's aanpassen. Zo zorg je ervoor dat je pagina's mooi worden weergegeven in de zoekresultaten.",
+      "seo.menu.unavailable.message": "Upgrade jouw website om de titel en omschrijving van al je pagina's aan te passen. Zo zorg je ervoor dat je pagina's mooi worden weergegeven in de zoekresultaten.",
       "seo.menu.close.button": "Sluiten",
       "seo.menu.upgrade.button": "Upgraden",
       "seo.menu.save.button": "Opslaan",
@@ -15,7 +15,7 @@
       "seo.menu.description.info": "Voor een goede weergave in de zoekresultaten, maak de beschrijving niet langer dan 160 tekens."
     },
     "en":{
-      "seo.menu.unavailable.message": "Upgrade to our Essential subscription to define the title and description of all your pages in order to rank higher in search engines like Google.",
+      "seo.menu.unavailable.message": "Upgrade your website to define the title and description of all your pages in order to rank higher in search engines like Google.",
       "seo.menu.close.button": "Close",
       "seo.menu.upgrade.button": "Upgrade",
       "seo.menu.save.button": "Save",
@@ -29,7 +29,7 @@
       "seo.menu.description.info": "Keep your description below 160 characters to make sure it is displayed properly in the search results."
     },
     "fr":{
-      "seo.menu.unavailable.message": "La mise à niveau de votre abonnement Essentiel vous permet de modifier le titre et la description de toutes vos pages de telle sorte que vous puissiez obtenir un rang plus élevé dans un moteur de recherche comme Google.",
+      "seo.menu.unavailable.message": "Upgrade your website to define the title and description of all your pages in order to rank higher in search engines like Google.",
       "seo.menu.close.button": "Fermer",
       "seo.menu.upgrade.button": "Mise à niveau",
       "seo.menu.save.button": "Enregistrer",
@@ -43,7 +43,7 @@
       "seo.menu.description.info": "Limitez de préférence la description en-dessous de 160 caractères pour s'assurer qu'il s'affiche correctement dans les résultats de recherche."
     },
     "de":{
-      "seo.menu.unavailable.message": "Ab einem Essential-Abonnement können Sie Titel und Beschreibung aller Ihrer Seiten bearbeiten. Damit stellen Sie sicher, dass Ihre Seiten in den Suchergebnissen gut angezeigt werden.",
+      "seo.menu.unavailable.message": "Upgrade your website to define the title and description of all your pages in order to rank higher in search engines like Google.",
       "seo.menu.close.button": "Schließen",
       "seo.menu.upgrade.button": "Upgraden",
       "seo.menu.save.button": "Speichern",
