@@ -171,8 +171,8 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasP
                 activeUserHasPermission({
                     no: function () {
                         editModeRenderer.open({
-                            template: '<form><p i18n code="seo.menu.unavailable.message" read-only>{{var}}</p></form>' +
-                            '<div class="dropdown-menu-buttons">' +
+                            template: '<div class="bin-menu-edit-body"><p i18n code="seo.menu.unavailable.message" read-only>{{var}}</p></div>' +
+                            '<div class="bin-menu-edit-actions">' +
                             '<a class="btn btn-success" href="https://binarta.com/applications" target="_blank" i18n code="seo.menu.upgrade.button" read-only>{{var}}</a>' +
                             '<button type="reset" class="btn btn-default" ng-click="close()" i18n code="seo.menu.close.button" read-only>{{var}}</button>' +
                             '</div>',
@@ -184,7 +184,7 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasP
                         rendererScope.seo.pageCode = seoSupport.getPageCode();
 
                         editModeRenderer.open({
-                            template: '<form>' +
+                            template: '<form class="bin-menu-edit-body">' +
                             '<div class="form-group">' +
 
                             '<div class="form-group">' +
@@ -209,7 +209,7 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasP
                             '<small i18n code="seo.menu.description.info" read-only><i class="fa fa-info-circle"></i> {{var}}</small>' +
                             '</div>' +
                             '</form>' +
-                            '<div class="dropdown-menu-buttons">' +
+                            '<div class="bin-menu-edit-actions">' +
                             '<button type="submit" class="btn btn-primary" ng-click="save(seo)" i18n code="seo.menu.save.button" read-only>{{var}}</button>' +
                             '<button type="reset" class="btn btn-default" ng-click="close()" i18n code="seo.menu.cancel.button" read-only>{{var}}</button>' +
                             '</div>',
