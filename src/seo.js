@@ -1,22 +1,17 @@
 angular.module('seo', ['i18n', 'config', 'toggle.edit.mode', 'checkpoint', 'ngRoute'])
-    .service('seoSupport', ['i18n', '$location', '$q', '$routeParams', '$document', 'config', SeoSupportService])
-    .directive('seoSupport', ['editModeRenderer', 'seoSupport', 'activeUserHasPermission', seoSupportDirectiveFactory])
+    .service('seoSupport', ['$location', '$q', '$document', 'i18n', 'i18nLocation', 'config', SeoSupportService])
+    .directive('seoSupport', ['editModeRenderer', 'seoSupport', 'activeUserHasPermission', 'i18nLocation', seoSupportDirectiveFactory])
     .run(['seoSupport', '$rootScope', function (seoSupport, $rootScope) {
-        $rootScope.$on('$routeChangeSuccess', function () {
+        $rootScope.$on('$routeChangeStart', function () {
             seoSupport.resolve();
         });
     }]);
 
-function SeoSupportService(i18n, $location, $q, $routeParams, $document, config) {
+function SeoSupportService($location, $q, $document, i18n, i18nLocation, config) {
     var self = this;
     var head = $document.find('head');
 
     this.seo = {};
-
-    this.getPageCode = function () {
-        var path = $location.path();
-        return $routeParams.locale ? path.replace('/' + $routeParams.locale, '') : path;
-    };
 
     this.update = function (args) {
         $q.all([
@@ -42,74 +37,84 @@ function SeoSupportService(i18n, $location, $q, $routeParams, $document, config)
     };
 
     this.updateTitle = function (title) {
-        i18n.translate({
-            code: self.getPageCode() + '.seo.title',
-            translation: title
+        i18nLocation.unlocalizedPath().then(function (path) {
+            i18n.translate({
+                code: path + '.seo.title',
+                translation: title
+            });
         });
     };
 
     this.updateDescription = function (description) {
-        i18n.translate({
-            code: self.getPageCode() + '.seo.description',
-            translation: description
+        i18nLocation.unlocalizedPath().then(function (path) {
+            i18n.translate({
+                code: path + '.seo.description',
+                translation: description
+            });
         });
     };
 
     this.updateMetaType = function (type) {
-        i18n.translate({
-            code: self.getPageCode() + '.seo.meta.type',
-            translation: type
+        i18nLocation.unlocalizedPath().then(function (path) {
+            i18n.translate({
+                code: path + '.seo.meta.type',
+                translation: type
+            });
         });
     };
 
     this.updateMetaImage = function (image) {
-        i18n.translate({
-            code: self.getPageCode() + '.seo.meta.image',
-            translation: image
+        i18nLocation.unlocalizedPath().then(function (path) {
+            i18n.translate({
+                code: path + '.seo.meta.image',
+                translation: image
+            });
         });
     };
 
     this.resolve = function () {
-        $q.all([
-            i18n.resolve({
-                code: 'seo.site.name',
-                default: isPublished() ? getNamespace() : 'Binarta'
-            }),
-            i18n.resolve({
-                code: 'seo.title.default',
-                default: 'Powered by Binarta'
-            }),
-            i18n.resolve({
-                code: self.getPageCode() + '.seo.title',
-                default: ' '
-            }),
-            i18n.resolve({
-                code: self.getPageCode() + '.seo.description',
-                default: ' '
-            }),
-            i18n.resolve({
-                code: self.getPageCode() + '.seo.meta.type',
-                default: 'website'
-            }),
-            i18n.resolve({
-                code: self.getPageCode() + '.seo.meta.image',
-                default: ' '
-            })
-        ]).then(function (result) {
-            self.seo = {
-                siteName: result[0].trim(),
-                defaultTitle: result[1].trim(),
-                title: result[2].trim(),
-                description: result[3].trim(),
-                meta: {
-                    type: result[4].trim(),
-                    image: result[5].trim()
-                }
-            };
+        i18nLocation.unlocalizedPath().then(function (path) {
+            $q.all([
+                i18n.resolve({
+                    code: 'seo.site.name',
+                    default: isPublished() ? getNamespace() : 'Binarta'
+                }),
+                i18n.resolve({
+                    code: 'seo.title.default',
+                    default: 'Powered by Binarta'
+                }),
+                i18n.resolve({
+                    code: path + '.seo.title',
+                    default: ' '
+                }),
+                i18n.resolve({
+                    code: path + '.seo.description',
+                    default: ' '
+                }),
+                i18n.resolve({
+                    code: path + '.seo.meta.type',
+                    default: 'website'
+                }),
+                i18n.resolve({
+                    code: path + '.seo.meta.image',
+                    default: ' '
+                })
+            ]).then(function (result) {
+                self.seo = {
+                    siteName: result[0].trim(),
+                    defaultTitle: result[1].trim(),
+                    title: result[2].trim(),
+                    description: result[3].trim(),
+                    meta: {
+                        type: result[4].trim(),
+                        image: result[5].trim()
+                    }
+                };
 
-            UpdateTitleElement(self.seo);
-            UpdateDescriptionElement(self.seo);
-            UpdateMetaTags(self.seo);
+                UpdateTitleElement(self.seo);
+                UpdateDescriptionElement(self.seo);
+                UpdateMetaTags(self.seo);
+            });
         });
     };
 
@@ -157,7 +162,7 @@ function SeoSupportService(i18n, $location, $q, $routeParams, $document, config)
     }
 }
 
-function seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasPermission) {
+function seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasPermission, i18nLocation) {
     return {
         restrict: 'A',
         scope: true,
@@ -181,7 +186,9 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasP
                     },
                     yes: function () {
                         rendererScope.seo = angular.copy(seoSupport.seo);
-                        rendererScope.seo.pageCode = seoSupport.getPageCode();
+                        i18nLocation.unlocalizedPath().then(function (path) {
+                            rendererScope.seo.pageCode = path;
+                        });
 
                         editModeRenderer.open({
                             template: '<form class="bin-menu-edit-body">' +

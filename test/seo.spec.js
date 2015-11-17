@@ -23,6 +23,13 @@ describe('seo', function () {
                 return deferred.promise;
             };
         }])
+        .service('i18nLocation', ['$q', function ($q) {
+            this.unlocalizedPath = function () {
+                var deferred = $q.defer();
+                deferred.resolve('/unlocalized/path');
+                return deferred.promise;
+            }
+        }])
         .factory('localeResolver', function () {
             return function () {
                 return locale;
@@ -46,18 +53,16 @@ describe('seo', function () {
             $location,
             defaultSiteName = 'Namespace',
             defaultTitle = 'Powered by Binarta',
-            path = '/test/path',
+            path = '/unlocalized/path',
             head;
 
-        beforeEach(inject(function(_seoSupport_, _i18n_, _$rootScope_, _$location_, $document, $routeParams) {
+        beforeEach(inject(function(_seoSupport_, _i18n_, _$rootScope_, _$location_, $document) {
             seoSupport = _seoSupport_;
             i18n = _i18n_;
             $rootScope = _$rootScope_;
             $location = _$location_;
             head = $document.find('head');
 
-            $location.path(path + '/' + locale);
-            $routeParams.locale = locale;
             seoSupport.resolve();
             $rootScope.$digest();
         }));
@@ -90,17 +95,13 @@ describe('seo', function () {
         });
 
         describe('on update', function () {
-            var newPath = '/new/path';
-
             beforeEach(function () {
-                $location.path(newPath + '/' + locale);
-
                 seoSupport.update({
                     siteName: 'site name',
                     defaultTitle: 'default title',
                     title: 'title',
                     description: 'description',
-                    pageCode: newPath
+                    pageCode: path
                 });
 
                 $rootScope.$digest();
@@ -109,20 +110,16 @@ describe('seo', function () {
             it('messages are translated', function () {
                 expect(i18n.updateSpy['seo.site.name']).toEqual('site name');
                 expect(i18n.updateSpy['seo.title.default']).toEqual('default title');
-                expect(i18n.updateSpy[newPath + '.seo.title']).toEqual('title');
-                expect(i18n.updateSpy[newPath + '.seo.description']).toEqual('description');
+                expect(i18n.updateSpy[path + '.seo.title']).toEqual('title');
+                expect(i18n.updateSpy[path + '.seo.description']).toEqual('description');
             });
 
             it('values are available', function () {
                 expect(i18n.resolveSpy['seo.site.name']).toEqual('site name');
                 expect(i18n.resolveSpy['seo.title.default']).toEqual('default title');
-                expect(i18n.resolveSpy[newPath + '.seo.title']).toEqual('title');
-                expect(i18n.resolveSpy[newPath + '.seo.description']).toEqual('description');
+                expect(i18n.resolveSpy[path + '.seo.title']).toEqual('title');
+                expect(i18n.resolveSpy[path + '.seo.description']).toEqual('description');
             });
-        });
-
-        it('get pageCode', function () {
-            expect(seoSupport.getPageCode()).toEqual(path);
         });
 
         describe('on update title', function () {
@@ -175,7 +172,7 @@ describe('seo', function () {
         var directive, editModeRendererSpy, editModeRendererClosed, seoSupportSpy, $rootScope, seoSupport, scope,
             permissionNo, permissionYes, permission, pageCode;
 
-        beforeEach(inject(function (_$rootScope_) {
+        beforeEach(inject(function (_$rootScope_, i18nLocation) {
             $rootScope = _$rootScope_;
             scope = $rootScope.$new();
 
@@ -188,7 +185,7 @@ describe('seo', function () {
                 }
             };
 
-            pageCode = '/page/code';
+            pageCode = '/unlocalized/path';
             seoSupport = {
                 seo: {
                     values: 'foo'
@@ -207,7 +204,7 @@ describe('seo', function () {
                 permission = p;
             };
 
-            directive = seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasPermission);
+            directive = seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasPermission, i18nLocation);
         }));
 
         it('restrict to attribute', function () {
@@ -254,6 +251,7 @@ describe('seo', function () {
                     describe('if has permission', function () {
                         beforeEach(function () {
                             permissionYes();
+                            $rootScope.$digest();
                         });
 
                         it('editModeRenderer is called', function () {
