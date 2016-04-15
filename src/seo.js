@@ -14,7 +14,7 @@ function SeoSupportService($location, $q, $document, i18n, i18nLocation, config)
     var self = this;
     var resolvePromise;
     var head = $document.find('head');
-
+    
     this.seo = {};
 
     this.update = function (args) {
@@ -77,55 +77,53 @@ function SeoSupportService($location, $q, $document, i18n, i18nLocation, config)
     };
 
     this.resolve = function () {
-        if(angular.isUndefined(resolvePromise)) {
-            var deferred = $q.defer();
-            i18nLocation.unlocalizedPath().then(function (path) {
-                $q.all([
-                    i18n.resolve({
-                        code: 'seo.site.name',
-                        default: isPublished() ? getNamespace() : 'Binarta'
-                    }),
-                    i18n.resolve({
-                        code: 'seo.title.default',
-                        default: 'Powered by Binarta'
-                    }),
-                    i18n.resolve({
-                        code: path + '.seo.title',
-                        default: ' '
-                    }),
-                    i18n.resolve({
-                        code: path + '.seo.description',
-                        default: ' '
-                    }),
-                    i18n.resolve({
-                        code: path + '.seo.meta.type',
-                        default: 'website'
-                    }),
-                    i18n.resolve({
-                        code: path + '.seo.meta.image',
-                        default: ' '
-                    })
-                ]).then(function (result) {
-                    self.seo = {
-                        siteName: result[0].trim(),
-                        defaultTitle: result[1].trim(),
-                        title: result[2].trim(),
-                        description: result[3].trim(),
-                        meta: {
-                            type: result[4].trim(),
-                            image: result[5].trim()
-                        }
-                    };
+        var deferred = $q.defer();
+        resolvePromise = deferred.promise;
+        i18nLocation.unlocalizedPath().then(function (path) {
+            $q.all([
+                i18n.resolve({
+                    code: 'seo.site.name',
+                    default: isPublished() ? getNamespace() : 'Binarta'
+                }),
+                i18n.resolve({
+                    code: 'seo.title.default',
+                    default: 'Powered by Binarta'
+                }),
+                i18n.resolve({
+                    code: path + '.seo.title',
+                    default: ' '
+                }),
+                i18n.resolve({
+                    code: path + '.seo.description',
+                    default: ' '
+                }),
+                i18n.resolve({
+                    code: path + '.seo.meta.type',
+                    default: 'website'
+                }),
+                i18n.resolve({
+                    code: path + '.seo.meta.image',
+                    default: ' '
+                })
+            ]).then(function (result) {
+                self.seo = {
+                    siteName: result[0].trim(),
+                    defaultTitle: result[1].trim(),
+                    title: result[2].trim(),
+                    description: result[3].trim(),
+                    meta: {
+                        type: result[4].trim(),
+                        image: result[5].trim()
+                    }
+                };
 
-                    updateTitleElement();
-                    updateDescriptionElement();
-                    updateImageMetaTag();
-                    UpdateMetaTags();
-                    deferred.resolve();
-                });
+                updateTitleElement();
+                updateDescriptionElement();
+                updateImageMetaTag();
+                UpdateMetaTags();
+                deferred.resolve();
             });
-            resolvePromise = deferred.promise;
-        }
+        });
         return resolvePromise;
     };
 
@@ -139,7 +137,7 @@ function SeoSupportService($location, $q, $document, i18n, i18nLocation, config)
     }
 
     this.updateTitleElement = function(t) {
-        self.resolve().then(function () {
+        resolvePromise.then(function () {
             updateTitleElement(t);
         });
     };
@@ -153,7 +151,7 @@ function SeoSupportService($location, $q, $document, i18n, i18nLocation, config)
     }
 
     this.updateDescriptionElement = function(d) {
-        self.resolve().then(function () {
+        resolvePromise.then(function () {
             updateDescriptionElement(d);
         });
     };
@@ -164,7 +162,7 @@ function SeoSupportService($location, $q, $document, i18n, i18nLocation, config)
     }
 
     this.updateImageMetaTag = function(i) {
-        self.resolve().then(function () {
+        resolvePromise.then(function () {
             updateImageMetaTag(i);
         });
     };

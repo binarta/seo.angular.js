@@ -124,6 +124,13 @@ describe('seo', function () {
                 expect(i18n.updateSpy[path + '.seo.title']).toEqual('title');
                 expect(i18n.updateSpy[path + '.seo.description']).toEqual('description');
             });
+
+            it('values are available', function () {
+                expect(i18n.resolveSpy['seo.site.name']).toEqual('site name');
+                expect(i18n.resolveSpy['seo.title.default']).toEqual('default title');
+                expect(i18n.resolveSpy[path + '.seo.title']).toEqual('title');
+                expect(i18n.resolveSpy[path + '.seo.description']).toEqual('description');
+            });
         });
 
         describe('on update title', function () {
@@ -288,7 +295,9 @@ describe('seo', function () {
     describe('seoTitle directive', function () {
         var title, element, scope;
 
-        beforeEach(inject(function ($document, $rootScope, $compile) {
+        beforeEach(inject(function ($document, $rootScope, $compile, seoSupport) {
+            seoSupport.resolve();
+
             var head = $document.find('head');
             title = head.find('title');
             scope = $rootScope.$new();
