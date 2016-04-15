@@ -124,13 +124,6 @@ describe('seo', function () {
                 expect(i18n.updateSpy[path + '.seo.title']).toEqual('title');
                 expect(i18n.updateSpy[path + '.seo.description']).toEqual('description');
             });
-
-            it('values are available', function () {
-                expect(i18n.resolveSpy['seo.site.name']).toEqual('site name');
-                expect(i18n.resolveSpy['seo.title.default']).toEqual('default title');
-                expect(i18n.resolveSpy[path + '.seo.title']).toEqual('title');
-                expect(i18n.resolveSpy[path + '.seo.description']).toEqual('description');
-            });
         });
 
         describe('on update title', function () {
@@ -306,14 +299,14 @@ describe('seo', function () {
         }));
 
         it('title element is updated', function () {
-            expect(title[0].innerText).toEqual('Page title');
+            expect(title[0].innerText).toEqual('Page title | Namespace');
         });
 
         it('When element changes', function () {
             scope.var = 'changed title';
             scope.$digest();
 
-            expect(title[0].innerText).toEqual('changed title');
+            expect(title[0].innerText).toEqual('changed title | Namespace');
         });
     });
 

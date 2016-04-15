@@ -12,6 +12,7 @@ angular.module('seo', ['i18n', 'config', 'toggle.edit.mode', 'checkpoint', 'ngRo
 
 function SeoSupportService($location, $q, $document, i18n, i18nLocation, config) {
     var self = this;
+    var resolvePromise;
     var head = $document.find('head');
 
     this.seo = {};
@@ -76,72 +77,96 @@ function SeoSupportService($location, $q, $document, i18n, i18nLocation, config)
     };
 
     this.resolve = function () {
-        i18nLocation.unlocalizedPath().then(function (path) {
-            $q.all([
-                i18n.resolve({
-                    code: 'seo.site.name',
-                    default: isPublished() ? getNamespace() : 'Binarta'
-                }),
-                i18n.resolve({
-                    code: 'seo.title.default',
-                    default: 'Powered by Binarta'
-                }),
-                i18n.resolve({
-                    code: path + '.seo.title',
-                    default: ' '
-                }),
-                i18n.resolve({
-                    code: path + '.seo.description',
-                    default: ' '
-                }),
-                i18n.resolve({
-                    code: path + '.seo.meta.type',
-                    default: 'website'
-                }),
-                i18n.resolve({
-                    code: path + '.seo.meta.image',
-                    default: ' '
-                })
-            ]).then(function (result) {
-                self.seo = {
-                    siteName: result[0].trim(),
-                    defaultTitle: result[1].trim(),
-                    title: result[2].trim(),
-                    description: result[3].trim(),
-                    meta: {
-                        type: result[4].trim(),
-                        image: result[5].trim()
-                    }
-                };
+        if(angular.isUndefined(resolvePromise)) {
+            var deferred = $q.defer();
+            i18nLocation.unlocalizedPath().then(function (path) {
+                $q.all([
+                    i18n.resolve({
+                        code: 'seo.site.name',
+                        default: isPublished() ? getNamespace() : 'Binarta'
+                    }),
+                    i18n.resolve({
+                        code: 'seo.title.default',
+                        default: 'Powered by Binarta'
+                    }),
+                    i18n.resolve({
+                        code: path + '.seo.title',
+                        default: ' '
+                    }),
+                    i18n.resolve({
+                        code: path + '.seo.description',
+                        default: ' '
+                    }),
+                    i18n.resolve({
+                        code: path + '.seo.meta.type',
+                        default: 'website'
+                    }),
+                    i18n.resolve({
+                        code: path + '.seo.meta.image',
+                        default: ' '
+                    })
+                ]).then(function (result) {
+                    self.seo = {
+                        siteName: result[0].trim(),
+                        defaultTitle: result[1].trim(),
+                        title: result[2].trim(),
+                        description: result[3].trim(),
+                        meta: {
+                            type: result[4].trim(),
+                            image: result[5].trim()
+                        }
+                    };
 
-                self.updateTitleElement();
-                self.updateDescriptionElement();
-                self.updateImageMetaTag();
-                UpdateMetaTags();
+                    updateTitleElement();
+                    updateDescriptionElement();
+                    updateImageMetaTag();
+                    UpdateMetaTags();
+                    deferred.resolve();
+                });
             });
-        });
+            resolvePromise = deferred.promise;
+        }
+        return resolvePromise;
     };
 
-    this.updateTitleElement = function(t) {
+    function updateTitleElement(t) {
         var element = head.find('title');
         var title = self.seo.title || t || self.seo.defaultTitle;
         var pageTitle = title + (self.seo.siteName ? ' | ' + self.seo.siteName : '');
         if (element.length == 1) element[0].textContent = pageTitle;
         else head.prepend('<title>' + pageTitle + '</title>');
         UpdateOpenGraphMetaTag('og:title', title);
+    }
+
+    this.updateTitleElement = function(t) {
+        self.resolve().then(function () {
+            updateTitleElement(t);
+        });
     };
 
-    this.updateDescriptionElement = function(d) {
+    function updateDescriptionElement(d) {
         var element = head.find('meta[name="description"]');
         var description = self.seo.description || d;
         if (element.length == 1) element[0].content = description;
         else head.prepend('<meta name="description" content="' + description + '">');
         UpdateOpenGraphMetaTag('og:description', description);
+    }
+
+    this.updateDescriptionElement = function(d) {
+        self.resolve().then(function () {
+            updateDescriptionElement(d);
+        });
     };
 
-    this.updateImageMetaTag = function(i) {
+    function updateImageMetaTag(i) {
         var url = self.seo.meta.image || i;
         UpdateOpenGraphMetaTag('og:image', url);
+    }
+
+    this.updateImageMetaTag = function(i) {
+        self.resolve().then(function () {
+            updateImageMetaTag(i);
+        });
     };
 
     function UpdateMetaTags() {
