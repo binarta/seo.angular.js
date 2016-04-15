@@ -36,6 +36,17 @@ describe('seo', function () {
             };
         });
 
+    angular.module('angularx', [])
+        .factory('binTruncateSpy', function() {
+            return jasmine.createSpy('binTruncateSpy');
+        })
+        .filter('binTruncate', function (binTruncateSpy) {
+            return function (value, length) {
+                binTruncateSpy({value: value, length: length});
+                return value;
+            }
+        });
+
     angular.module('config', [])
         .service('config', function () {
             this.namespace = 'namespace'
@@ -167,7 +178,6 @@ describe('seo', function () {
         });
     });
 
-
     describe('seoSupport directive', function () {
         var directive, editModeRendererSpy, editModeRendererClosed, seoSupportSpy, $rootScope, seoSupport, scope,
             permissionNo, permissionYes, permission, pageCode;
@@ -279,6 +289,91 @@ describe('seo', function () {
                     });
                 });
             });
+        });
+    });
+
+    describe('seoTitle directive', function () {
+        var title, element, scope;
+
+        beforeEach(inject(function ($document, $rootScope, $compile) {
+            var head = $document.find('head');
+            title = head.find('title');
+            scope = $rootScope.$new();
+            element = angular.element('<div seo-title>{{var}}</div>');
+            $compile(element)(scope);
+            scope.var = 'Page title';
+            scope.$digest();
+        }));
+
+        it('title element is updated', function () {
+            expect(title[0].innerText).toEqual('Page title');
+        });
+
+        it('When element changes', function () {
+            scope.var = 'changed title';
+            scope.$digest();
+
+            expect(title[0].innerText).toEqual('changed title');
+        });
+    });
+
+    describe('seoDirective directive', function () {
+        var element, scope, seoSupport, binTruncateSpy;
+
+        beforeEach(inject(function ($document, $rootScope, $compile, _seoSupport_, _binTruncateSpy_) {
+            seoSupport = _seoSupport_;
+            binTruncateSpy = _binTruncateSpy_;
+            seoSupport.updateDescriptionElement = jasmine.createSpy('updateDescriptionElement');
+            scope = $rootScope.$new();
+            element = angular.element('<div seo-description>{{var}}</div>');
+            $compile(element)(scope);
+            scope.var = 'foo bar';
+            scope.$digest();
+        }));
+
+        it('meta description element is updated', function () {
+            expect(binTruncateSpy).toHaveBeenCalledWith({
+                value: 'foo bar',
+                length: 160
+            });
+            expect(seoSupport.updateDescriptionElement).toHaveBeenCalledWith('foo bar');
+        });
+
+        it('When element changes', function () {
+            scope.var = 'changed description';
+            scope.$digest();
+
+            expect(binTruncateSpy).toHaveBeenCalledWith({
+                value: 'changed description',
+                length: 160
+            });
+            expect(seoSupport.updateDescriptionElement).toHaveBeenCalledWith('changed description');
+        });
+    });
+
+    describe('seoImage directive', function () {
+        var element, scope, seoSupport;
+
+        beforeEach(inject(function ($document, $rootScope, $compile, _seoSupport_) {
+            seoSupport = _seoSupport_;
+            seoSupport.updateImageMetaTag = jasmine.createSpy('updateImageMetaTag');
+            seoSupport.updateImageMetaTag.reset();
+            scope = $rootScope.$new();
+            element = angular.element('<image src="{{var}}" seo-image />');
+            $compile(element)(scope);
+            scope.var = 'http://image-url.jpg/';
+            scope.$digest();
+        }));
+
+        it('image meta element is updated', function () {
+            expect(seoSupport.updateImageMetaTag).toHaveBeenCalledWith('http://image-url.jpg/');
+        });
+
+        it('When element changes', function () {
+            scope.var = 'http://another-url.jpg/';
+            scope.$digest();
+
+            expect(seoSupport.updateImageMetaTag).toHaveBeenCalledWith('http://another-url.jpg/');
         });
     });
 });

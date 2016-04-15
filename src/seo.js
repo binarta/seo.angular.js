@@ -1,6 +1,9 @@
-angular.module('seo', ['i18n', 'config', 'toggle.edit.mode', 'checkpoint', 'ngRoute'])
+angular.module('seo', ['i18n', 'config', 'toggle.edit.mode', 'checkpoint', 'ngRoute', 'angularx'])
     .service('seoSupport', ['$location', '$q', '$document', 'i18n', 'i18nLocation', 'config', SeoSupportService])
     .directive('seoSupport', ['editModeRenderer', 'seoSupport', 'activeUserHasPermission', 'i18nLocation', seoSupportDirectiveFactory])
+    .directive('seoTitle', ['seoSupport', SeoTitleDirective])
+    .directive('seoDescription', ['$filter', 'seoSupport', SeoDescriptionDirective])
+    .directive('seoImage', ['seoSupport', SeoImageDirective])
     .run(['seoSupport', '$rootScope', function (seoSupport, $rootScope) {
         $rootScope.$on('$routeChangeStart', function () {
             seoSupport.resolve();
@@ -111,33 +114,40 @@ function SeoSupportService($location, $q, $document, i18n, i18nLocation, config)
                     }
                 };
 
-                UpdateTitleElement(self.seo);
-                UpdateDescriptionElement(self.seo);
-                UpdateMetaTags(self.seo);
+                self.updateTitleElement();
+                self.updateDescriptionElement();
+                self.updateImageMetaTag();
+                UpdateMetaTags();
             });
         });
     };
 
-    function UpdateTitleElement(seo) {
+    this.updateTitleElement = function(t) {
         var element = head.find('title');
-        var title = (seo.title || seo.defaultTitle) + (seo.siteName ? ' | ' + seo.siteName : '');
-        if (element.length == 1) element[0].textContent = title;
-        else head.prepend('<title>' + title + '</title>');
-    }
+        var title = self.seo.title || t || self.seo.defaultTitle;
+        var pageTitle = title + (self.seo.siteName ? ' | ' + self.seo.siteName : '');
+        if (element.length == 1) element[0].textContent = pageTitle;
+        else head.prepend('<title>' + pageTitle + '</title>');
+        UpdateOpenGraphMetaTag('og:title', title);
+    };
 
-    function UpdateDescriptionElement(seo) {
+    this.updateDescriptionElement = function(d) {
         var element = head.find('meta[name="description"]');
-        if (element.length == 1) element[0].content = seo.description;
-        else head.prepend('<meta name="description" content="' + seo.description + '">');
-    }
+        var description = self.seo.description || d;
+        if (element.length == 1) element[0].content = description;
+        else head.prepend('<meta name="description" content="' + description + '">');
+        UpdateOpenGraphMetaTag('og:description', description);
+    };
 
-    function UpdateMetaTags(seo) {
-        UpdateOpenGraphMetaTag('og:title', (seo.title || seo.defaultTitle));
-        UpdateOpenGraphMetaTag('og:type', seo.meta.type);
-        UpdateOpenGraphMetaTag('og:site_name', seo.siteName);
-        UpdateOpenGraphMetaTag('og:description', seo.description);
+    this.updateImageMetaTag = function(i) {
+        var url = self.seo.meta.image || i;
+        UpdateOpenGraphMetaTag('og:image', url);
+    };
+
+    function UpdateMetaTags() {
+        UpdateOpenGraphMetaTag('og:type', self.seo.meta.type);
+        UpdateOpenGraphMetaTag('og:site_name', self.seo.siteName);
         UpdateOpenGraphMetaTag('og:url', $location.absUrl());
-        UpdateOpenGraphMetaTag('og:image', seo.meta.image);
     }
 
     function UpdateOpenGraphMetaTag(property, content) {
@@ -230,6 +240,45 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasP
                     }
                 }, 'seo.edit');
             };
+        }
+    }
+}
+
+function SeoTitleDirective(seoSupport)  {
+    return {
+        restrict: 'A',
+        link: function (scope, el) {
+            scope.$watch(function () {
+                return el[0].innerText;
+            }, function (value) {
+                if (value) seoSupport.updateTitleElement(value);
+            });
+        }
+    }
+}
+
+function SeoDescriptionDirective($filter, seoSupport) {
+    return {
+        restrict: 'A',
+        link: function (scope, el) {
+            scope.$watch(function () {
+                return el[0].innerText;
+            }, function (value) {
+                if (value) seoSupport.updateDescriptionElement($filter('binTruncate')(value, 160));
+            });
+        }
+    }
+}
+
+function SeoImageDirective(seoSupport)  {
+    return {
+        restrict: 'A',
+        link: function (scope, el) {
+            scope.$watch(function () {
+                return el[0].src;
+            }, function (value) {
+                if (value) seoSupport.updateImageMetaTag(value);
+            });
         }
     }
 }
