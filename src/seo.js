@@ -204,6 +204,8 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasP
                             template: '<form class="bin-menu-edit-body">' +
                             '<div class="form-group">' +
 
+                            '<div ng-if="seo.pageCode == \'/\'">' +
+
                             '<div class="form-group">' +
                             '<label for="inputSiteName" i18n code="seo.menu.site.name.label" read-only>{{var}}</label>' +
                             '<input type="text" id="inputSiteName" ng-model="seo.siteName">' +
@@ -212,6 +214,8 @@ function seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasP
                             '<label for="inputDefaultTitle" i18n code="seo.menu.default.title.label" read-only>{{var}}</label>' +
                             '<input type="text" id="inputDefaultTitle" ng-model="seo.defaultTitle">' +
                             '<small i18n code="seo.menu.default.title.info" read-only><i class="fa fa-info-circle"></i> {{var}}</small>' +
+                            '</div>' +
+
                             '</div>' +
 
                             '<div class="form-group">' +
