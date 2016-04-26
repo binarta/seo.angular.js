@@ -144,7 +144,7 @@ function SeoSupportService($location, $q, $document, i18n, i18nLocation, config)
 
     function updateDescriptionElement(d) {
         var element = head.find('meta[name="description"]');
-        var description = self.seo.description || d;
+        var description = self.seo.description || d || '';
         if (element.length == 1) element[0].content = description;
         else head.prepend('<meta name="description" content="' + description + '">');
         UpdateOpenGraphMetaTag('og:description', description);
