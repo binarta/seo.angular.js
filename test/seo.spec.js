@@ -359,7 +359,7 @@ describe('seo', function () {
         beforeEach(inject(function ($document, $rootScope, $compile, _seoSupport_) {
             seoSupport = _seoSupport_;
             seoSupport.updateImageMetaTag = jasmine.createSpy('updateImageMetaTag');
-            seoSupport.updateImageMetaTag.reset();
+            seoSupport.updateImageMetaTag.calls.reset();
             scope = $rootScope.$new();
             element = angular.element('<image src="{{var}}" seo-image />');
             $compile(element)(scope);

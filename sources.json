@@ -1,0 +1,5 @@
+{
+  "default": {
+    "seo": "bower_components/binarta.seo.angular/src/seo.js"
+  }
+}
