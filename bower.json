@@ -7,9 +7,8 @@
   ],
   "dependencies": {
     "binarta.angularx": "0.*.*",
-    "binarta.i18n.angular": "1.*.*",
+    "binarta.i18n.angular": "2.*.*",
     "binarta.config.angular": "0.*.*",
-    "binarta.checkpoint.angular": "0.*.*",
     "binarta.toggle.edit.mode.angular": "1.*.*"
   },
   "devDependencies": {
