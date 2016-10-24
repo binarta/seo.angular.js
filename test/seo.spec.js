@@ -37,7 +37,7 @@ describe('seo', function () {
         });
 
     angular.module('angularx', [])
-        .factory('binTruncateSpy', function() {
+        .factory('binTruncateSpy', function () {
             return jasmine.createSpy('binTruncateSpy');
         })
         .filter('binTruncate', function (binTruncateSpy) {
@@ -58,7 +58,8 @@ describe('seo', function () {
     beforeEach(module('i18n'));
 
     describe('seoSupport service', function () {
-        var seoSupport,
+        var binarta,
+            seoSupport,
             i18n,
             $rootScope,
             $location,
@@ -67,7 +68,8 @@ describe('seo', function () {
             path = '/unlocalized/path',
             head;
 
-        beforeEach(inject(function(_seoSupport_, _i18n_, _$rootScope_, _$location_, $document) {
+        beforeEach(inject(function (_seoSupport_, _i18n_, _$rootScope_, _$location_, $document, _binarta_) {
+            binarta = _binarta_;
             seoSupport = _seoSupport_;
             i18n = _i18n_;
             $rootScope = _$rootScope_;
@@ -75,6 +77,11 @@ describe('seo', function () {
             head = $document.find('head');
 
             seoSupport.resolve();
+
+            $location.path(path);
+            binarta.application.setLocaleForPresentation(undefined);
+            binarta.application.refresh();
+
             $rootScope.$digest();
         }));
 
@@ -295,7 +302,8 @@ describe('seo', function () {
     describe('seoTitle directive', function () {
         var title, element, scope;
 
-        beforeEach(inject(function ($document, $rootScope, $compile, seoSupport) {
+        beforeEach(inject(function ($document, $rootScope, $compile, seoSupport, _binarta_) {
+            binarta = _binarta_;
             seoSupport.resolve();
 
             var head = $document.find('head');
@@ -304,7 +312,10 @@ describe('seo', function () {
             element = angular.element('<div seo-title>{{var}}</div>');
             $compile(element)(scope);
             scope.var = 'Page title';
-            scope.$digest();
+
+            binarta.application.setLocaleForPresentation(undefined);
+            binarta.application.refresh();
+            $rootScope.$digest();
         }));
 
         it('title element is updated', function () {

@@ -1,5 +1,5 @@
-angular.module('seo', ['i18n', 'config', 'toggle.edit.mode', 'checkpoint', 'ngRoute', 'angularx'])
-    .service('seoSupport', ['$location', '$q', '$document', 'i18n', 'i18nLocation', 'config', SeoSupportService])
+angular.module('seo', ['binarta-applicationjs-angular1', 'i18n', 'config', 'toggle.edit.mode', 'checkpoint', 'ngRoute', 'angularx'])
+    .service('seoSupport', ['$location', '$q', '$document', 'i18n', 'i18nLocation', 'config', 'binarta', SeoSupportService])
     .directive('seoSupport', ['editModeRenderer', 'seoSupport', 'activeUserHasPermission', 'i18nLocation', seoSupportDirectiveFactory])
     .directive('seoTitle', ['seoSupport', SeoTitleDirective])
     .directive('seoDescription', ['$filter', 'seoSupport', SeoDescriptionDirective])
@@ -10,7 +10,7 @@ angular.module('seo', ['i18n', 'config', 'toggle.edit.mode', 'checkpoint', 'ngRo
         });
     }]);
 
-function SeoSupportService($location, $q, $document, i18n, i18nLocation, config) {
+function SeoSupportService($location, $q, $document, i18n, i18nLocation, config, binarta) {
     var self = this;
     var resolvePromise;
     var head = $document.find('head');
@@ -79,7 +79,8 @@ function SeoSupportService($location, $q, $document, i18n, i18nLocation, config)
     this.resolve = function () {
         var deferred = $q.defer();
         resolvePromise = deferred.promise;
-        i18nLocation.unlocalizedPath().then(function (path) {
+        binarta.schedule(function() {
+            var path = binarta.application.unlocalizedPath();
             $q.all([
                 i18n.resolve({
                     code: 'seo.site.name',
