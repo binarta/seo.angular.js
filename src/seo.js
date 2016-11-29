@@ -1,312 +1,222 @@
-angular.module('seo', ['binarta-applicationjs-angular1', 'i18n', 'config', 'toggle.edit.mode', 'checkpoint', 'ngRoute', 'angularx'])
-    .service('seoSupport', ['$location', '$q', '$document', 'i18n', 'i18nLocation', 'config', 'binarta', SeoSupportService])
-    .directive('seoSupport', ['editModeRenderer', 'seoSupport', 'activeUserHasPermission', 'i18nLocation', seoSupportDirectiveFactory])
-    .directive('seoTitle', ['seoSupport', SeoTitleDirective])
-    .directive('seoDescription', ['$filter', 'seoSupport', SeoDescriptionDirective])
-    .directive('seoImage', ['seoSupport', SeoImageDirective])
-    .run(['seoSupport', '$rootScope', function (seoSupport, $rootScope) {
-        $rootScope.$on('$routeChangeStart', function () {
-            seoSupport.resolve();
-        });
-    }]);
-
-function SeoSupportService($location, $q, $document, i18n, i18nLocation, config, binarta) {
-    var self = this;
-    var resolvePromise;
-    var head = $document.find('head');
-    
-    this.seo = {};
-
-    this.update = function (args) {
-        $q.all([
-            i18n.translate({
-                code: 'seo.site.name',
-                translation: args.siteName
-            }),
-            i18n.translate({
-                code: 'seo.title.default',
-                translation: args.defaultTitle
-            }),
-            i18n.translate({
-                code: args.pageCode + '.seo.title',
-                translation: args.title
-            }),
-            i18n.translate({
-                code: args.pageCode + '.seo.description',
-                translation: args.description
-            })
-        ]).then(function () {
-            self.resolve();
-        });
-    };
-
-    this.updateTitle = function (title) {
-        i18nLocation.unlocalizedPath().then(function (path) {
-            i18n.translate({
-                code: path + '.seo.title',
-                translation: title
+(function () {
+    angular.module('seo', ['binarta-applicationjs-angular1', 'binarta-checkpointjs-angular1', 'i18n', 'config',
+        'toggle.edit.mode', 'ngRoute', 'angularx'])
+        .service('seoSupport', ['$location', '$q', '$document', 'i18n', 'config', 'binarta', SeoSupportService])
+        .directive('seoSupport', ['editModeRenderer', 'seoSupport', 'binarta', seoSupportDirectiveFactory])
+        .directive('seoTitle', ['seoSupport', SeoTitleDirective])
+        .directive('seoDescription', ['$filter', 'seoSupport', SeoDescriptionDirective])
+        .directive('seoImage', ['seoSupport', SeoImageDirective])
+        .run(['seoSupport', '$rootScope', function (seoSupport, $rootScope) {
+            $rootScope.$on('$routeChangeStart', function () {
+                seoSupport.resolve();
             });
-        });
-    };
+        }]);
 
-    this.updateDescription = function (description) {
-        i18nLocation.unlocalizedPath().then(function (path) {
-            i18n.translate({
-                code: path + '.seo.description',
-                translation: description
+    function SeoSupportService($location, $q, $document, i18n, config, binarta) {
+        var self = this;
+        var head = $document.find('head');
+
+        this.seo = {};
+
+        this.getSEOValues = function (args) {
+            binarta.schedule(function () {
+                var path = binarta.application.unlocalizedPath();
+                $q.all([
+                    i18n.resolve({code: 'seo.site.name', default: getNamespace()}),
+                    i18n.resolve({code: 'seo.title.default', default: ''}),
+                    i18n.resolve({code: path + '.seo.title', default: ''}),
+                    i18n.resolve({code: path + '.seo.description', default: ''})
+                ]).then(function (result) {
+                    self.seo = {
+                        siteName: result[0].trim(),
+                        defaultTitle: result[1].trim(),
+                        title: result[2].trim(),
+                        description: result[3].trim()
+                    };
+                    if (args && args.success) args.success(self.seo);
+                });
             });
-        });
-    };
+        };
 
-    this.updateMetaType = function (type) {
-        i18nLocation.unlocalizedPath().then(function (path) {
-            i18n.translate({
-                code: path + '.seo.meta.type',
-                translation: type
-            });
-        });
-    };
-
-    this.updateMetaImage = function (image) {
-        i18nLocation.unlocalizedPath().then(function (path) {
-            i18n.translate({
-                code: path + '.seo.meta.image',
-                translation: image
-            });
-        });
-    };
-
-    this.resolve = function () {
-        var deferred = $q.defer();
-        resolvePromise = deferred.promise;
-        binarta.schedule(function() {
-            var path = binarta.application.unlocalizedPath();
+        this.update = function (args) {
             $q.all([
-                i18n.resolve({
-                    code: 'seo.site.name',
-                    default: isPublished() ? getNamespace() : 'Binarta'
-                }),
-                i18n.resolve({
-                    code: 'seo.title.default',
-                    default: 'Powered by Binarta'
-                }),
-                i18n.resolve({
-                    code: path + '.seo.title',
-                    default: ' '
-                }),
-                i18n.resolve({
-                    code: path + '.seo.description',
-                    default: ' '
-                }),
-                i18n.resolve({
-                    code: path + '.seo.meta.type',
-                    default: 'website'
-                }),
-                i18n.resolve({
-                    code: path + '.seo.meta.image',
-                    default: ' '
-                })
-            ]).then(function (result) {
+                i18n.translate({code: 'seo.site.name', translation: args.siteName}),
+                i18n.translate({code: 'seo.title.default', translation: args.defaultTitle}),
+                i18n.translate({code: args.pageCode + '.seo.title', translation: args.title}),
+                i18n.translate({code: args.pageCode + '.seo.description', translation: args.description})
+            ]).then(function () {
                 self.seo = {
-                    siteName: result[0].trim(),
-                    defaultTitle: result[1].trim(),
-                    title: result[2].trim(),
-                    description: result[3].trim(),
-                    meta: {
-                        type: result[4].trim(),
-                        image: result[5].trim()
-                    }
+                    siteName: args.siteName,
+                    defaultTitle: args.defaultTitle,
+                    title: args.title,
+                    description: args.description
                 };
-
-                updateTitleElement();
-                updateDescriptionElement();
-                updateImageMetaTag();
-                UpdateMetaTags();
-                deferred.resolve();
+                updateTags();
+                if (args && args.success) args.success();
             });
-        });
-        return resolvePromise;
-    };
+        };
 
-    function updateTitleElement(t) {
-        var element = head.find('title');
-        var title = self.seo.title || t || self.seo.defaultTitle;
-        var pageTitle = title + (self.seo.siteName ? ' | ' + self.seo.siteName : '');
-        if (element.length == 1) element[0].textContent = pageTitle;
-        else head.prepend('<title>' + pageTitle + '</title>');
-        UpdateOpenGraphMetaTag('og:title', title);
-    }
+        this.resolve = function () {
+            this.getSEOValues({
+                success: updateTags
+            });
+        };
 
-    this.updateTitleElement = function(t) {
-        resolvePromise.then(function () {
-            updateTitleElement(t);
-        });
-    };
-
-    function updateDescriptionElement(d) {
-        var element = head.find('meta[name="description"]');
-        var description = self.seo.description || d || '';
-        if (element.length == 1) element[0].content = description;
-        else head.prepend('<meta name="description" content="' + description + '">');
-        UpdateOpenGraphMetaTag('og:description', description);
-    }
-
-    this.updateDescriptionElement = function(d) {
-        resolvePromise.then(function () {
-            updateDescriptionElement(d);
-        });
-    };
-
-    function updateImageMetaTag(i) {
-        var url = self.seo.meta.image || i;
-        UpdateOpenGraphMetaTag('og:image', url);
-    }
-
-    this.updateImageMetaTag = function(i) {
-        resolvePromise.then(function () {
-            updateImageMetaTag(i);
-        });
-    };
-
-    function UpdateMetaTags() {
-        UpdateOpenGraphMetaTag('og:type', self.seo.meta.type);
-        UpdateOpenGraphMetaTag('og:site_name', self.seo.siteName);
-        UpdateOpenGraphMetaTag('og:url', $location.absUrl());
-    }
-
-    function UpdateOpenGraphMetaTag(property, content) {
-        var element = head.find('meta[property="' + property + '"]');
-        if (element.length == 1) {
-            if (content) element[0].content = content;
-            else element.remove();
+        function getNamespace() {
+            return config.namespace.charAt(0).toUpperCase() + config.namespace.substring(1);
         }
-        else {
-            if (content) head.append('<meta property="' + property + '" content="' + content + '">');
+
+        function updateTags() {
+            self.updateTitleTag();
+            self.updateDescriptionTag();
+            updateMetaTags();
+        }
+
+        this.updateTitleTag = function (t) {
+            var title = self.seo.title || t || self.seo.defaultTitle || '';
+            var siteName = self.seo.siteName || '';
+            var divider = title && siteName ? ' | ' : '';
+            var pageTitle = title + divider + siteName;
+            updateTag({tag: 'title', content: pageTitle});
+            updateMetaTag({property: 'og:title', content: title});
+        };
+
+        this.updateDescriptionTag = function (d) {
+            var description = self.seo.description || d || '';
+            updateMetaTag({name: 'description', content: description});
+            updateMetaTag({property: 'og:description', content: description});
+        };
+
+        this.updateImageMetaTag = function (url) {
+            updateMetaTag({property: 'og:image', content: url});
+        };
+
+        function updateTag(args) {
+            var result = head.find(args.tag);
+            if (result.length == 0) {
+                if (args.content) head.prepend('<' + args.tag + '>' + args.content + '</' + args.tag + '>');
+            } else args.content ? result[0].textContent = args.content : result[0].remove();
+        }
+
+        function updateMetaTags() {
+            updateMetaTag({name: 'author', content: self.seo.siteName});
+            updateMetaTag({property: 'og:type', content: 'website'});
+            updateMetaTag({property: 'og:site_name', content: self.seo.siteName});
+            updateMetaTag({property: 'og:url', content: $location.absUrl()});
+        }
+
+        function updateMetaTag(args) {
+            var type = args.property ? 'property' : 'name';
+            var id = args.property || args.name;
+            var result = head.find('meta[' + type + '="' + id + '"]');
+            if (result.length == 0) {
+                if (args.content) head.append('<meta ' + type + '="' + id + '" content="' + args.content + '">');
+            } else args.content ? result[0].content = args.content : result[0].remove();
         }
     }
 
-    function getNamespace() {
-        return config.namespace.charAt(0).toUpperCase() + config.namespace.substring(1);
-    }
+    function seoSupportDirectiveFactory(editModeRenderer, seoSupport, binarta) {
+        return {
+            restrict: 'A',
+            scope: true,
+            link: function (scope) {
+                scope.open = function () {
+                    var rendererScope = scope.$new();
+                    rendererScope.close = function () {
+                        editModeRenderer.close();
+                    };
 
-    function isPublished() {
-        var host = $location.host();
-        var hostToCheck = 'binarta.com';
-        return host.indexOf(hostToCheck, host.length - hostToCheck.length) == -1;
-    }
-}
+                    binarta.checkpoint.profile.hasPermission('seo.edit') ? isPermitted() : unavailable();
 
-function seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasPermission, i18nLocation) {
-    return {
-        restrict: 'A',
-        scope: true,
-        link: function (scope) {
-            scope.open = function () {
-                var rendererScope = scope.$new();
-                rendererScope.close = function () {
-                    editModeRenderer.close();
-                };
+                    function isPermitted() {
+                        seoSupport.getSEOValues({success: withSEOValues});
 
-                activeUserHasPermission({
-                    no: function () {
+                        function withSEOValues(seo) {
+                            rendererScope.seo = seo;
+                            rendererScope.seo.pageCode = binarta.application.unlocalizedPath();
+
+                            editModeRenderer.open({
+                                templateUrl: 'bin-seo-edit.html',
+                                scope: rendererScope
+                            });
+
+                            rendererScope.save = function (args) {
+                                rendererScope.working = true;
+                                args.success = function () {
+                                    editModeRenderer.close();
+                                };
+                                seoSupport.update(args);
+                            };
+                        }
+                    }
+
+                    function unavailable() {
                         editModeRenderer.open({
-                            template: '<div class="bin-menu-edit-body"><p i18n code="seo.menu.unavailable.message" read-only>{{var}}</p></div>' +
-                            '<div class="bin-menu-edit-actions">' +
-                            '<a class="btn btn-success pull-left" ng-href="{{binartaUpgradeUri}}" target="_blank" i18n code="seo.menu.upgrade.button" read-only>{{var}}</a>' +
-                            '<button type="reset" class="btn btn-default" ng-click="close()" i18n code="seo.menu.close.button" read-only>{{var}}</button>' +
-                            '</div>',
+                            templateUrl: 'bin-seo-unavailable.html',
                             scope: rendererScope
                         });
-                    },
-                    yes: function () {
-                        rendererScope.seo = angular.copy(seoSupport.seo);
-                        i18nLocation.unlocalizedPath().then(function (path) {
-                            rendererScope.seo.pageCode = path;
-                        });
-
-                        editModeRenderer.open({
-                            template: '<form class="bin-menu-edit-body">' +
-                            '<div class="form-group">' +
-
-                            '<div ng-if="seo.pageCode == \'/\'">' +
-
-                            '<div class="form-group">' +
-                            '<label for="inputSiteName" i18n code="seo.menu.site.name.label" read-only>{{var}}</label>' +
-                            '<input type="text" id="inputSiteName" ng-model="seo.siteName">' +
-                            '</div>' +
-
-                            '<label for="inputDefaultTitle" i18n code="seo.menu.default.title.label" read-only>{{var}}</label>' +
-                            '<input type="text" id="inputDefaultTitle" ng-model="seo.defaultTitle">' +
-                            '<small i18n code="seo.menu.default.title.info" read-only><i class="fa fa-info-circle"></i> {{var}}</small>' +
-                            '</div>' +
-
-                            '</div>' +
-
-                            '<div class="form-group">' +
-                            '<label for="inputTitle" i18n code="seo.menu.title.label" read-only>{{var}}</label>' +
-                            '<input type="text" id="inputTitle" ng-model="seo.title">' +
-                            '<small i18n code="seo.menu.title.info" read-only><i class="fa fa-info-circle"></i> {{var}}</small>' +
-                            '</div>' +
-
-                            '<div class="form-group">' +
-                            '<label for="inputDescription" i18n code="seo.menu.description.label" read-only>{{var}}</label>' +
-                            '<textarea id="inputDescription" ng-model="seo.description"></textarea>' +
-                            '<small i18n code="seo.menu.description.info" read-only><i class="fa fa-info-circle"></i> {{var}}</small>' +
-                            '</div>' +
-                            '</form>' +
-                            '<div class="bin-menu-edit-actions">' +
-                            '<button type="submit" class="btn btn-primary" ng-click="save(seo)" i18n code="seo.menu.save.button" read-only>{{var}}</button>' +
-                            '<button type="reset" class="btn btn-default" ng-click="close()" i18n code="seo.menu.cancel.button" read-only>{{var}}</button>' +
-                            '</div>',
-                            scope: rendererScope
-                        });
-
-                        rendererScope.save = function (args) {
-                            seoSupport.update(args);
-                            editModeRenderer.close();
-                        };
                     }
-                }, 'seo.edit');
-            };
+                };
+            }
         }
     }
-}
 
-function SeoTitleDirective(seoSupport)  {
-    return {
-        restrict: 'A',
-        link: function (scope, el) {
-            scope.$watch(function () {
-                return el[0].innerText;
-            }, function (value) {
-                if (value) seoSupport.updateTitleElement(value);
-            });
-        }
-    }
-}
+    function SeoTitleDirective(seoSupport) {
+        return {
+            restrict: 'A',
+            link: function (scope, el) {
+                seoSupport.getSEOValues({
+                    success: onSuccess
+                });
 
-function SeoDescriptionDirective($filter, seoSupport) {
-    return {
-        restrict: 'A',
-        link: function (scope, el) {
-            scope.$watch(function () {
-                return el[0].innerText;
-            }, function (value) {
-                if (value) seoSupport.updateDescriptionElement($filter('binTruncate')(value, 160));
-            });
-        }
-    }
-}
+                function onSuccess(seo) {
+                    if (!seo.title) watchOnElement();
+                }
 
-function SeoImageDirective(seoSupport)  {
-    return {
-        restrict: 'A',
-        link: function (scope, el) {
-            scope.$watch(function () {
-                return el[0].src;
-            }, function (value) {
-                if (value) seoSupport.updateImageMetaTag(value);
-            });
+                function watchOnElement() {
+                    scope.$watch(function () {
+                        return el[0].innerText;
+                    }, function (value) {
+                        if (value) seoSupport.updateTitleTag(value);
+                    });
+                }
+            }
         }
     }
-}
+
+    function SeoDescriptionDirective($filter, seoSupport) {
+        return {
+            restrict: 'A',
+            link: function (scope, el) {
+                seoSupport.getSEOValues({
+                    success: onSuccess
+                });
+
+                function onSuccess(seo) {
+                    if (!seo.description) watchOnElement();
+                }
+
+                function watchOnElement() {
+                    scope.$watch(function () {
+                        return el[0].innerText;
+                    }, function (value) {
+                        if (value) seoSupport.updateDescriptionTag($filter('binTruncate')(value, 160));
+                    });
+                }
+            }
+        }
+    }
+
+    function SeoImageDirective(seoSupport) {
+        return {
+            restrict: 'A',
+            link: function (scope, el) {
+                scope.$watch(function () {
+                    return el[0].src;
+                }, function (value) {
+                    if (value) seoSupport.updateImageMetaTag(value);
+                });
+            }
+        }
+    }
+})();

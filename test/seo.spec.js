@@ -1,297 +1,447 @@
 describe('seo', function () {
-    var locale = 'en';
+    var $rootScope, $location, $compile, seoSupport, binarta, i18n, config, head,
+        path = '/unlocalized/path',
+        defaultSiteName = 'Namespace';
 
-    angular.module('i18n', [])
-        .service('i18n', ['$q', function ($q) {
-            this.resolveSpy = {};
-            this.updateSpy = {};
-
-            this.resolve = function (ctx) {
-                var deferred = $q.defer();
-
-                this.resolveSpy[ctx.code] = this.updateSpy[ctx.code] || ctx.default;
-
-                deferred.resolve(ctx.default);
-                return deferred.promise;
-            };
-            this.translate = function (ctx) {
-                var deferred = $q.defer();
-
-                this.updateSpy[ctx.code] = ctx.translation;
-
-                deferred.resolve('ok');
-                return deferred.promise;
-            };
-        }])
-        .service('i18nLocation', ['$q', function ($q) {
-            this.unlocalizedPath = function () {
-                var deferred = $q.defer();
-                deferred.resolve('/unlocalized/path');
-                return deferred.promise;
-            }
-        }])
-        .factory('localeResolver', function () {
-            return function () {
-                return locale;
-            };
-        });
-
-    angular.module('angularx', [])
-        .factory('binTruncateSpy', function () {
-            return jasmine.createSpy('binTruncateSpy');
-        })
-        .filter('binTruncate', function (binTruncateSpy) {
-            return function (value, length) {
-                binTruncateSpy({value: value, length: length});
-                return value;
-            }
-        });
-
-    angular.module('config', [])
-        .service('config', function () {
-            this.namespace = 'namespace'
-        });
-
-    angular.module('toggle.edit.mode', []);
-    angular.module('checkpoint', []);
     beforeEach(module('seo'));
-    beforeEach(module('i18n'));
+
+    beforeEach(inject(function (_$rootScope_, _$location_, _$compile_, _seoSupport_, _binarta_, _i18n_, _config_, $document) {
+        $rootScope = _$rootScope_;
+        $location = _$location_;
+        $compile = _$compile_;
+        seoSupport = _seoSupport_;
+        binarta = _binarta_;
+        i18n = _i18n_;
+        config = _config_;
+        head = $document.find('head');
+        $location.path(path);
+        triggerBinartaSchedule();
+    }));
+
+    function triggerBinartaSchedule() {
+        binarta.application.adhesiveReading.read('-');
+    }
+
+    describe('on route change', function () {
+        beforeEach(function () {
+            spyOn(seoSupport, 'resolve');
+            $rootScope.$broadcast('$routeChangeStart', {params: {}});
+        });
+
+        it('seo values are resolved', function () {
+            expect(seoSupport.resolve).toHaveBeenCalled();
+        });
+    });
 
     describe('seoSupport service', function () {
-        var binarta,
-            seoSupport,
-            i18n,
-            $rootScope,
-            $location,
-            defaultSiteName = 'Namespace',
-            defaultTitle = 'Powered by Binarta',
-            path = '/unlocalized/path',
-            head;
+        var siteName, defaultTitle, pageTitle, pageDescription;
 
-        beforeEach(inject(function (_seoSupport_, _i18n_, _$rootScope_, _$location_, $document, _binarta_) {
-            binarta = _binarta_;
-            seoSupport = _seoSupport_;
-            i18n = _i18n_;
-            $rootScope = _$rootScope_;
-            $location = _$location_;
-            head = $document.find('head');
+        describe('on resolve with default values', function () {
+            var resolved;
 
-            seoSupport.resolve();
+            beforeEach(function () {
+                siteName = defaultSiteName;
+                defaultTitle = '';
+                pageTitle = '';
+                pageDescription = '';
 
-            $location.path(path);
-            binarta.application.setLocaleForPresentation(undefined);
-            binarta.application.refresh();
+                seoSupport.resolve({
+                    success: function (seo) {
+                        resolved = seo;
+                    }
+                });
+            });
 
-            $rootScope.$digest();
-        }));
+            it('default message are resolved', function () {
+                expect(i18n.resolveSpy['seo.site.name']).toEqual(siteName);
+                expect(i18n.resolveSpy['seo.title.default']).toEqual(defaultTitle);
+                expect(i18n.resolveSpy[path + '.seo.title']).toEqual(pageTitle);
+                expect(i18n.resolveSpy[path + '.seo.description']).toEqual(pageDescription);
+            });
 
-        it('default message are resolved', function () {
-            expect(i18n.resolveSpy['seo.site.name']).toEqual(defaultSiteName);
-            expect(i18n.resolveSpy['seo.title.default']).toEqual(defaultTitle);
-            expect(i18n.resolveSpy[path + '.seo.title']).toEqual(' ');
-            expect(i18n.resolveSpy[path + '.seo.description']).toEqual(' ');
-            expect(i18n.resolveSpy[path + '.seo.meta.type']).toEqual('website');
-            expect(i18n.resolveSpy[path + '.seo.meta.image']).toEqual(' ');
-        });
+            describe('on success', function () {
+                beforeEach(function () {
+                    $rootScope.$digest();
+                });
 
-        it('seo values are available', function () {
-            expect(seoSupport.seo).toEqual({
-                siteName: defaultSiteName,
-                defaultTitle: defaultTitle,
-                title: '',
-                description: '',
-                meta: {
-                    type: 'website',
-                    image: ''
-                }
+                it('seo values are available', function () {
+                    expect(seoSupport.seo).toEqual({
+                        siteName: siteName,
+                        defaultTitle: defaultTitle,
+                        title: pageTitle,
+                        description: pageDescription
+                    });
+                });
+
+                it('title tag is added', function () {
+                    var tag = head.find('title')[0];
+                    expect(tag.innerText).toEqual(defaultSiteName);
+                });
+
+                it('description tag is not added', function () {
+                    var tag = head.find('meta[name="description"]')[0];
+                    expect(tag).toBeUndefined();
+                });
+
+                it('og description meta tag is not added', function () {
+                    var tag = head.find('meta[property="og:description"]')[0];
+                    expect(tag).toBeUndefined();
+                });
+
+                it('og title meta tag is not added', function () {
+                    var tag = head.find('meta[property="og:title"]')[0];
+                    expect(tag).toBeUndefined();
+                });
+
+                it('author meta tag is added', function () {
+                    var tag = head.find('meta[name="author"]')[0];
+                    expect(tag.content).toEqual(defaultSiteName);
+                });
+
+                it('og type meta tag is added', function () {
+                    var tag = head.find('meta[property="og:type"]')[0];
+                    expect(tag.content).toEqual('website');
+                });
+
+                it('og site_name meta tag is added', function () {
+                    var tag = head.find('meta[property="og:site_name"]')[0];
+                    expect(tag.content).toEqual(defaultSiteName);
+                });
+
+                it('og url meta tag is added', function () {
+                    var tag = head.find('meta[property="og:url"]')[0];
+                    expect(tag.content).toContain(path);
+                });
             });
         });
 
-        it('title element is updated', function () {
-            var title = head.find('title');
-            expect(title[0].innerText).toEqual(defaultTitle + ' | ' + defaultSiteName);
+        describe('on resolve with values', function () {
+            beforeEach(function () {
+                siteName = 'site name';
+                defaultTitle = 'default title';
+                pageTitle = 'page title';
+                pageDescription = 'page description';
+
+                i18n.updateSpy['seo.site.name'] = siteName;
+                i18n.updateSpy['seo.title.default'] = defaultTitle;
+                i18n.updateSpy[path + '.seo.title'] = pageTitle;
+                i18n.updateSpy[path + '.seo.description'] = pageDescription;
+
+                seoSupport.resolve();
+            });
+
+            it('message are resolved', function () {
+                expect(i18n.resolveSpy['seo.site.name']).toEqual(siteName);
+                expect(i18n.resolveSpy['seo.title.default']).toEqual(defaultTitle);
+                expect(i18n.resolveSpy[path + '.seo.title']).toEqual(pageTitle);
+                expect(i18n.resolveSpy[path + '.seo.description']).toEqual(pageDescription);
+            });
+
+            describe('on success', function () {
+                beforeEach(function () {
+                    $rootScope.$digest();
+                });
+
+                it('seo values are available', function () {
+                    expect(seoSupport.seo).toEqual({
+                        siteName: siteName,
+                        defaultTitle: defaultTitle,
+                        title: pageTitle,
+                        description: pageDescription
+                    });
+                });
+
+                it('title tag is added', function () {
+                    var tag = head.find('title')[0];
+                    expect(tag.innerText).toEqual(pageTitle + ' | ' + siteName);
+                });
+
+                it('description tag is added', function () {
+                    var tag = head.find('meta[name="description"]')[0];
+                    expect(tag.content).toEqual(pageDescription);
+                });
+
+                it('og description meta tag is added', function () {
+                    var tag = head.find('meta[property="og:description"]')[0];
+                    expect(tag.content).toEqual(pageDescription);
+                });
+
+                it('og title meta tag is added', function () {
+                    var tag = head.find('meta[property="og:title"]')[0];
+                    expect(tag.content).toEqual(pageTitle);
+                });
+
+                it('author meta tag is added', function () {
+                    var tag = head.find('meta[name="author"]')[0];
+                    expect(tag.content).toEqual(siteName);
+                });
+
+                it('og type meta tag is added', function () {
+                    var tag = head.find('meta[property="og:type"]')[0];
+                    expect(tag.content).toEqual('website');
+                });
+
+                it('og site_name meta tag is added', function () {
+                    var tag = head.find('meta[property="og:site_name"]')[0];
+                    expect(tag.content).toEqual(siteName);
+                });
+
+                it('og url meta tag is added', function () {
+                    var tag = head.find('meta[property="og:url"]')[0];
+                    expect(tag.content).toContain(path);
+                });
+            });
         });
 
         describe('on update', function () {
-            beforeEach(function () {
-                seoSupport.update({
-                    siteName: 'site name',
-                    defaultTitle: 'default title',
-                    title: 'title',
-                    description: 'description',
-                    pageCode: path
-                });
+            var resolved;
 
-                $rootScope.$digest();
+            beforeEach(function () {
+                siteName = 'new site name';
+                defaultTitle = 'new default title';
+                pageTitle = 'new page title';
+                pageDescription = 'new page description';
+
+                seoSupport.update({
+                    siteName: siteName,
+                    defaultTitle: defaultTitle,
+                    title: pageTitle,
+                    description: pageDescription,
+                    pageCode: path,
+                    success: function () {
+                        resolved = true;
+                    }
+                });
             });
 
             it('messages are translated', function () {
-                expect(i18n.updateSpy['seo.site.name']).toEqual('site name');
-                expect(i18n.updateSpy['seo.title.default']).toEqual('default title');
-                expect(i18n.updateSpy[path + '.seo.title']).toEqual('title');
-                expect(i18n.updateSpy[path + '.seo.description']).toEqual('description');
+                expect(i18n.updateSpy['seo.site.name']).toEqual(siteName);
+                expect(i18n.updateSpy['seo.title.default']).toEqual(defaultTitle);
+                expect(i18n.updateSpy[path + '.seo.title']).toEqual(pageTitle);
+                expect(i18n.updateSpy[path + '.seo.description']).toEqual(pageDescription);
             });
 
-            it('values are available', function () {
-                expect(i18n.resolveSpy['seo.site.name']).toEqual('site name');
-                expect(i18n.resolveSpy['seo.title.default']).toEqual('default title');
-                expect(i18n.resolveSpy[path + '.seo.title']).toEqual('title');
-                expect(i18n.resolveSpy[path + '.seo.description']).toEqual('description');
+            describe('on success', function () {
+                beforeEach(function () {
+                    $rootScope.$digest();
+                });
+
+                it('seo values are available', function () {
+                    expect(seoSupport.seo).toEqual({
+                        siteName: siteName,
+                        defaultTitle: defaultTitle,
+                        title: pageTitle,
+                        description: pageDescription
+                    });
+                });
+
+                it('title tag is updated', function () {
+                    var tag = head.find('title')[0];
+                    expect(tag.innerText).toEqual(pageTitle + ' | ' + siteName);
+                });
+
+                it('description tag is updated', function () {
+                    var tag = head.find('meta[name="description"]')[0];
+                    expect(tag.content).toEqual(pageDescription);
+                });
+
+                it('og description meta tag is updated', function () {
+                    var tag = head.find('meta[property="og:description"]')[0];
+                    expect(tag.content).toEqual(pageDescription);
+                });
+
+                it('og title meta tag is updated', function () {
+                    var tag = head.find('meta[property="og:title"]')[0];
+                    expect(tag.content).toEqual(pageTitle);
+                });
+
+                it('author meta tag is updated', function () {
+                    var tag = head.find('meta[name="author"]')[0];
+                    expect(tag.content).toEqual(siteName);
+                });
+
+                it('og type meta tag is updated', function () {
+                    var tag = head.find('meta[property="og:type"]')[0];
+                    expect(tag.content).toEqual('website');
+                });
+
+                it('og site_name meta tag is updated', function () {
+                    var tag = head.find('meta[property="og:site_name"]')[0];
+                    expect(tag.content).toEqual(siteName);
+                });
+
+                it('og url meta tag is updated', function () {
+                    var tag = head.find('meta[property="og:url"]')[0];
+                    expect(tag.content).toContain(path);
+                });
+
+                it('success callback is executed', function () {
+                    expect(resolved).toBeTruthy();
+                });
             });
         });
 
-        describe('on update title', function () {
+        describe('on update title tag', function () {
             beforeEach(function () {
-                seoSupport.updateTitle('new value');
+                pageTitle = 'updated title';
+                seoSupport.updateTitleTag(pageTitle);
                 $rootScope.$digest();
             });
 
-            it('message is translated', function () {
-                expect(i18n.updateSpy[path + '.seo.title']).toEqual('new value');
+            it('title tag is updated', function () {
+                var tag = head.find('title')[0];
+                expect(tag.innerText).toEqual(pageTitle);
+            });
+
+            it('og title meta tag is updated', function () {
+                var tag = head.find('meta[property="og:title"]')[0];
+                expect(tag.content).toEqual(pageTitle);
             });
         });
 
-        describe('on update description', function () {
+        describe('on update description tag', function () {
             beforeEach(function () {
-                seoSupport.updateDescription('new value');
+                pageDescription = 'updated description';
+                seoSupport.updateDescriptionTag(pageDescription);
                 $rootScope.$digest();
             });
 
-            it('message is translated', function () {
-                expect(i18n.updateSpy[path + '.seo.description']).toEqual('new value');
+            it('description tag is updated', function () {
+                var tag = head.find('meta[name="description"]')[0];
+                expect(tag.content).toEqual(pageDescription);
+            });
+
+            it('og description meta tag is updated', function () {
+                var tag = head.find('meta[property="og:description"]')[0];
+                expect(tag.content).toEqual(pageDescription);
             });
         });
 
-        describe('on update meta type', function () {
+        describe('on update image meta tag', function () {
+            var url;
+
             beforeEach(function () {
-                seoSupport.updateMetaType('new value');
+                url = '/image/path';
+                seoSupport.updateImageMetaTag(url);
                 $rootScope.$digest();
             });
 
-            it('message is translated', function () {
-                expect(i18n.updateSpy[path + '.seo.meta.type']).toEqual('new value');
-            });
-        });
-
-        describe('on update meta image', function () {
-            beforeEach(function () {
-                seoSupport.updateMetaImage('new value');
-                $rootScope.$digest();
-            });
-
-            it('message is translated', function () {
-                expect(i18n.updateSpy[path + '.seo.meta.image']).toEqual('new value');
+            it('og image meta tag is updated', function () {
+                var tag = head.find('meta[property="og:image"]')[0];
+                expect(tag.content).toEqual(url);
             });
         });
     });
 
     describe('seoSupport directive', function () {
-        var directive, editModeRendererSpy, editModeRendererClosed, seoSupportSpy, $rootScope, seoSupport, scope,
-            permissionNo, permissionYes, permission, pageCode;
+        var element, editModeRenderer, scope;
 
-        beforeEach(inject(function (_$rootScope_, i18nLocation) {
-            $rootScope = _$rootScope_;
-            scope = $rootScope.$new();
-
-            var editModeRenderer = {
-                open: function (args) {
-                    editModeRendererSpy = args;
-                },
-                close: function () {
-                    editModeRendererClosed = true;
-                }
-            };
-
-            pageCode = '/unlocalized/path';
-            seoSupport = {
-                seo: {
-                    values: 'foo'
-                },
-                update: function (args) {
-                    seoSupportSpy = args;
-                },
-                getPageCode: function () {
-                    return pageCode;
-                }
-            };
-
-            var activeUserHasPermission = function (args, p) {
-                permissionNo = args.no;
-                permissionYes = args.yes;
-                permission = p;
-            };
-
-            directive = seoSupportDirectiveFactory(editModeRenderer, seoSupport, activeUserHasPermission, i18nLocation);
+        beforeEach(inject(function (_editModeRenderer_) {
+            editModeRenderer = _editModeRenderer_;
+            element = angular.element('<div seo-support></div>');
+            $compile(element)($rootScope.$new());
+            scope = element.scope();
         }));
 
-        it('restrict to attribute', function () {
-            expect(directive.restrict).toEqual('A');
-        });
-
-        it('uses child scope', function () {
-            expect(directive.scope).toEqual(true);
-        });
-
-        describe('on link', function () {
-            beforeEach(function () {
-                directive.link(scope);
-            });
-
-            describe('when open is triggered', function () {
+        describe('when user has no permission', function () {
+            describe('on open', function () {
                 beforeEach(function () {
                     scope.open();
                 });
 
-                describe('check for permission', function () {
-                    it('permission is seo.edit', function () {
-                        expect(permission).toEqual('seo.edit');
+                it('edit mode renderer is opened with "unavailable"-template', function () {
+                    expect(editModeRenderer.open).toHaveBeenCalledWith({
+                        templateUrl: 'bin-seo-unavailable.html',
+                        scope: jasmine.any(Object)
+                    });
+                });
+
+                describe('with edit mode scope', function () {
+                    var editScope;
+
+                    beforeEach(function () {
+                        editScope = editModeRenderer.open.calls.mostRecent().args[0].scope;
                     });
 
-                    describe('if no permission', function () {
-                        beforeEach(function () {
-                            permissionNo();
-                        });
+                    it('on close', function () {
+                        editScope.close();
+                        expect(editModeRenderer.close).toHaveBeenCalled();
+                    });
+                });
+            });
+        });
 
-                        it('editModeRenderer is called', function () {
-                            expect(editModeRendererSpy.template).toEqual(jasmine.any(String));
-                            expect(editModeRendererSpy.scope.$parent).toEqual(scope);
-                            expect(editModeRendererSpy.scope.close).toEqual(jasmine.any(Function));
-                        });
+        describe('when user has seo.edit permission', function () {
+            beforeEach(function () {
+                binarta.checkpoint.gateway.addPermission('seo.edit');
+                binarta.checkpoint.registrationForm.submit({username: 'u', password: 'p'});
+            });
 
-                        it('and close is called', function () {
-                            editModeRendererSpy.scope.close();
+            describe('on open', function () {
+                beforeEach(function () {
+                    scope.open();
+                });
 
-                            expect(editModeRendererClosed).toBeTruthy();
+                describe('with SEO values', function () {
+                    beforeEach(function () {
+                        scope.$digest();
+                    });
+
+                    it('edit mode renderer is opened with "edit"-template', function () {
+                        expect(editModeRenderer.open).toHaveBeenCalledWith({
+                            templateUrl: 'bin-seo-edit.html',
+                            scope: jasmine.any(Object)
                         });
                     });
 
-                    describe('if has permission', function () {
+                    describe('with edit mode scope', function () {
+                        var editScope;
+
                         beforeEach(function () {
-                            permissionYes();
-                            $rootScope.$digest();
+                            editScope = editModeRenderer.open.calls.mostRecent().args[0].scope;
                         });
 
-                        it('editModeRenderer is called', function () {
-                            expect(editModeRendererSpy.template).toEqual(jasmine.any(String));
-                            expect(editModeRendererSpy.scope.$parent).toEqual(scope);
-                            expect(editModeRendererSpy.scope.seo.values).toEqual(seoSupport.seo.values);
+                        it('SEO values are available', function () {
+                            expect(editScope.seo).toEqual({
+                                siteName: 'Namespace',
+                                defaultTitle: '',
+                                title: '',
+                                description: '',
+                                pageCode: '/unlocalized/path'
+                            });
                         });
 
-                        it('and pageCode is set to seo', function () {
-                            expect(editModeRendererSpy.scope.seo.pageCode).toEqual(pageCode);
-                        });
+                        describe('on save', function () {
+                            beforeEach(function () {
+                                spyOn(seoSupport, 'update');
+                                editScope.seo.title = 'new';
+                                editScope.save(editScope.seo);
+                            });
 
-                        it('and close is called', function () {
-                            editModeRendererSpy.scope.close();
+                            it('is working', function () {
+                                expect(editScope.working).toBeTruthy();
+                            });
 
-                            expect(editModeRendererClosed).toBeTruthy();
-                        });
+                            it('is updated', function () {
+                                expect(seoSupport.update).toHaveBeenCalledWith({
+                                    siteName: 'Namespace',
+                                    defaultTitle: '',
+                                    title: 'new',
+                                    description: '',
+                                    pageCode: '/unlocalized/path',
+                                    success: jasmine.any(Function)
+                                });
+                            });
 
-                        it('and save is called', function () {
-                            editModeRendererSpy.scope.save('new values');
+                            describe('on update success', function () {
+                                beforeEach(function () {
+                                    seoSupport.update.calls.mostRecent().args[0].success();
+                                });
 
-                            expect(seoSupportSpy).toEqual('new values');
-                            expect(editModeRendererClosed).toBeTruthy();
+                                it('edit mode renderer is closed', function () {
+                                    expect(editModeRenderer.close).toHaveBeenCalled();
+                                });
+                            });
                         });
                     });
                 });
@@ -302,91 +452,154 @@ describe('seo', function () {
     describe('seoTitle directive', function () {
         var title, element, scope;
 
-        beforeEach(inject(function ($document, $rootScope, $compile, seoSupport, _binarta_) {
-            binarta = _binarta_;
-            seoSupport.resolve();
-
-            var head = $document.find('head');
-            title = head.find('title');
+        beforeEach(function () {
             scope = $rootScope.$new();
+            title = head.find('title')[0];
             element = angular.element('<div seo-title>{{var}}</div>');
-            $compile(element)(scope);
-            scope.var = 'Page title';
-
-            binarta.application.setLocaleForPresentation(undefined);
-            binarta.application.refresh();
-            $rootScope.$digest();
-        }));
-
-        it('title element is updated', function () {
-            expect(title[0].innerText).toEqual('Page title | Namespace');
         });
 
-        it('When element changes', function () {
-            scope.var = 'changed title';
-            scope.$digest();
+        describe('with no previous title set', function () {
+            beforeEach(function () {
+                $compile(element)(scope);
+                scope.var = 'Page title';
+                scope.$digest();
+            });
 
-            expect(title[0].innerText).toEqual('changed title | Namespace');
+            it('title element is updated', function () {
+                expect(title.innerText).toEqual('Page title | ' + defaultSiteName);
+            });
+
+            describe('when element changes', function () {
+                beforeEach(function () {
+                    scope.var = 'changed title';
+                    scope.$digest();
+                });
+
+                it('title is updated', function () {
+                    expect(title.innerText).toEqual('changed title | ' + defaultSiteName);
+                });
+            });
+        });
+
+        describe('with a previous title', function () {
+            beforeEach(function () {
+                i18n.updateSpy[path + '.seo.title'] = 'previous title';
+                seoSupport.resolve();
+                $compile(element)(scope);
+                scope.var = 'Page title';
+                scope.$digest();
+            });
+
+            it('title element is not updated', function () {
+                expect(title.innerText).toEqual('previous title | ' + defaultSiteName);
+            });
+
+            describe('when element changes', function () {
+                beforeEach(function () {
+                    scope.var = 'changed title';
+                    scope.$digest();
+                });
+
+                it('title is not updated', function () {
+                    expect(title.innerText).toEqual('previous title | ' + defaultSiteName);
+                });
+            });
         });
     });
 
-    describe('seoDirective directive', function () {
-        var element, scope, seoSupport, binTruncateSpy;
+    describe('seoDescription directive', function () {
+        var description, element, scope, binTruncateSpy;
 
-        beforeEach(inject(function ($document, $rootScope, $compile, _seoSupport_, _binTruncateSpy_) {
-            seoSupport = _seoSupport_;
+        beforeEach(inject(function (_binTruncateSpy_) {
             binTruncateSpy = _binTruncateSpy_;
-            seoSupport.updateDescriptionElement = jasmine.createSpy('updateDescriptionElement');
             scope = $rootScope.$new();
             element = angular.element('<div seo-description>{{var}}</div>');
-            $compile(element)(scope);
-            scope.var = 'foo bar';
-            scope.$digest();
         }));
 
-        it('meta description element is updated', function () {
-            expect(binTruncateSpy).toHaveBeenCalledWith({
-                value: 'foo bar',
-                length: 160
+        describe('with no previous description set', function () {
+            beforeEach(function () {
+                $compile(element)(scope);
+                scope.var = 'd';
+                scope.$digest();
+                description = head.find('meta[name="description"]')[0];
             });
-            expect(seoSupport.updateDescriptionElement).toHaveBeenCalledWith('foo bar');
+
+            it('description tag is updated', function () {
+                expect(binTruncateSpy).toHaveBeenCalledWith({
+                    value: 'd',
+                    length: 160
+                });
+                expect(description.content).toEqual('d');
+            });
+
+            describe('when element changes', function () {
+                beforeEach(function () {
+                    scope.var = 'changed description';
+                    scope.$digest();
+                });
+
+                it('description tag is updated', function () {
+                    expect(binTruncateSpy).toHaveBeenCalledWith({
+                        value: 'changed description',
+                        length: 160
+                    });
+                    expect(description.content).toEqual('changed description');
+                });
+            });
         });
 
-        it('When element changes', function () {
-            scope.var = 'changed description';
-            scope.$digest();
-
-            expect(binTruncateSpy).toHaveBeenCalledWith({
-                value: 'changed description',
-                length: 160
+        describe('with previous description', function () {
+            beforeEach(function () {
+                i18n.updateSpy[path + '.seo.description'] = 'previous description';
+                seoSupport.resolve();
+                $compile(element)(scope);
+                scope.var = 'd';
+                scope.$digest();
+                description = head.find('meta[name="description"]')[0];
             });
-            expect(seoSupport.updateDescriptionElement).toHaveBeenCalledWith('changed description');
+
+            it('description tag is not updated', function () {
+                expect(description.content).toEqual('previous description');
+            });
+
+            describe('when element changes', function () {
+                beforeEach(function () {
+                    scope.var = 'changed description';
+                    scope.$digest();
+                });
+
+                it('description tag is not updated', function () {
+                    expect(description.content).toEqual('previous description');
+                });
+            });
         });
     });
 
     describe('seoImage directive', function () {
-        var element, scope, seoSupport;
+        var tag, element, scope;
 
-        beforeEach(inject(function ($document, $rootScope, $compile, _seoSupport_) {
-            seoSupport = _seoSupport_;
-            seoSupport.updateImageMetaTag = jasmine.createSpy('updateImageMetaTag');
-            seoSupport.updateImageMetaTag.calls.reset();
+        beforeEach(function () {
             scope = $rootScope.$new();
             element = angular.element('<image src="{{var}}" seo-image />');
             $compile(element)(scope);
             scope.var = 'http://image-url.jpg/';
             scope.$digest();
-        }));
-
-        it('image meta element is updated', function () {
-            expect(seoSupport.updateImageMetaTag).toHaveBeenCalledWith('http://image-url.jpg/');
+            tag = head.find('meta[property="og:image"]')[0];
         });
 
-        it('When element changes', function () {
-            scope.var = 'http://another-url.jpg/';
-            scope.$digest();
+        it('image meta tag is added', function () {
+            expect(tag.content).toEqual('http://image-url.jpg/');
+        });
 
-            expect(seoSupport.updateImageMetaTag).toHaveBeenCalledWith('http://another-url.jpg/');
+        describe('when element changes', function () {
+            beforeEach(function () {
+                scope.var = 'http://another-url.jpg/';
+                scope.$digest();
+            });
+
+            it('image meta tag is updated', function () {
+                expect(tag.content).toEqual('http://another-url.jpg/');
+            });
         });
     });
 });

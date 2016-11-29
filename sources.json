@@ -1,5 +1,6 @@
 {
   "default": {
-    "seo": "bower_components/binarta.seo.angular/src/seo.js"
+    "seo": "bower_components/binarta.seo.angular/src/seo.js",
+    "bin.seo.clerk.templates": "bower_components/binarta.seo.angular/src/seo-clerk-tpls-bootstrap3.js"
   }
 }

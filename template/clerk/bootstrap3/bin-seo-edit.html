@@ -1,0 +1,42 @@
+<form class="bin-menu-edit-body">
+    <div class="form-group">
+        <div ng-if="seo.pageCode == '/'">
+            <div class="form-group">
+                <label for="inputSiteName" i18n code="seo.menu.site.name.label" read-only ng-bind="::var"></label>
+                <input type="text" id="inputSiteName" ng-model="seo.siteName">
+            </div>
+
+            <label for="inputDefaultTitle" i18n code="seo.menu.default.title.label" read-only ng-bind="::var"></label>
+            <input type="text" id="inputDefaultTitle" ng-model="seo.defaultTitle">
+            <small i18n code="seo.menu.default.title.info" read-only>
+                <i class="fa fa-info-circle"></i> <span ng-bind="::var"></span>
+            </small>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="inputTitle" i18n code="seo.menu.title.label" read-only ng-bind="::var"></label>
+        <input type="text" id="inputTitle" ng-model="seo.title" autofocus>
+        <small i18n code="seo.menu.title.info" read-only>
+            <i class="fa fa-info-circle"></i> <span ng-bind="::var"></span>
+        </small>
+    </div>
+
+    <div class="form-group">
+        <label for="inputDescription" i18n code="seo.menu.description.label" read-only ng-bind="::var"></label>
+        <textarea id="inputDescription" ng-model="seo.description"></textarea>
+        <small i18n code="seo.menu.description.info" read-only>
+            <i class="fa fa-info-circle"></i> <span ng-bind="::var"></span>
+        </small>
+    </div>
+</form>
+<div class="bin-menu-edit-actions">
+    <button type="submit" class="btn btn-primary" ng-click="save(seo)"
+            i18n code="seo.menu.save.button" read-only>
+        <span ng-show="working"><i class="fa fa-spinner fa-spin fa-fw"></i></span>
+        <span ng-bind="::var"></span>
+    </button>
+    <button type="reset" class="btn btn-default" ng-click="close()" ng-disabled="working"
+            i18n code="seo.menu.cancel.button" read-only ng-bind="::var">
+    </button>
+</div>
