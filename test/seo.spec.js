@@ -331,6 +331,20 @@ describe('seo', function () {
                 expect(tag.content).toEqual(url);
             });
         });
+
+        it('apple icon is added to head', function () {
+            var appleIcon = head.find('link[rel="apple-touch-icon"]')[0];
+            expect(appleIcon.sizes.toString()).toEqual('180x180');
+            expect(appleIcon.href).toContain(config.awsPath + 'favicon.img?height=180');
+        });
+
+        it('favicons are added to head', function () {
+            var favicons = head.find('link[rel="icon"]');
+            expect(favicons[0].sizes.toString()).toEqual('32x32');
+            expect(favicons[0].href).toContain(config.awsPath + 'favicon.img?height=32');
+            expect(favicons[1].sizes.toString()).toEqual('16x16');
+            expect(favicons[1].href).toContain(config.awsPath + 'favicon.img?height=16');
+        });
     });
 
     describe('seoSupport directive', function () {
@@ -343,15 +357,15 @@ describe('seo', function () {
             scope = element.scope();
         }));
 
-        describe('when user has no permission', function () {
+        describe('when user has no seo.edit permission', function () {
             describe('on open', function () {
                 beforeEach(function () {
                     scope.open();
                 });
 
-                it('edit mode renderer is opened with "unavailable"-template', function () {
+                it('edit mode renderer is opened', function () {
                     expect(editModeRenderer.open).toHaveBeenCalledWith({
-                        templateUrl: 'bin-seo-unavailable.html',
+                        templateUrl: 'bin-seo-edit.html',
                         scope: jasmine.any(Object)
                     });
                 });
@@ -361,6 +375,10 @@ describe('seo', function () {
 
                     beforeEach(function () {
                         editScope = editModeRenderer.open.calls.mostRecent().args[0].scope;
+                    });
+
+                    it('is in unavailable state', function () {
+                        expect(editScope.state.name).toEqual('unavailable');
                     });
 
                     it('on close', function () {
@@ -382,27 +400,31 @@ describe('seo', function () {
                     scope.open();
                 });
 
-                describe('with SEO values', function () {
+                it('edit mode renderer is opened', function () {
+                    expect(editModeRenderer.open).toHaveBeenCalledWith({
+                        templateUrl: 'bin-seo-edit.html',
+                        scope: jasmine.any(Object)
+                    });
+                });
+
+                describe('with edit mode scope', function () {
+                    var editScope;
+
                     beforeEach(function () {
-                        scope.$digest();
+                        editScope = editModeRenderer.open.calls.mostRecent().args[0].scope;
                     });
 
-                    it('edit mode renderer is opened with "edit"-template', function () {
-                        expect(editModeRenderer.open).toHaveBeenCalledWith({
-                            templateUrl: 'bin-seo-edit.html',
-                            scope: jasmine.any(Object)
-                        });
+                    it('is in seo state', function () {
+                        expect(editScope.state.name).toEqual('seo');
                     });
 
-                    describe('with edit mode scope', function () {
-                        var editScope;
-
+                    describe('with SEO values', function () {
                         beforeEach(function () {
-                            editScope = editModeRenderer.open.calls.mostRecent().args[0].scope;
+                            scope.$digest();
                         });
 
                         it('SEO values are available', function () {
-                            expect(editScope.seo).toEqual({
+                            expect(editScope.state.seo).toEqual({
                                 siteName: 'Namespace',
                                 defaultTitle: '',
                                 title: '',
@@ -414,8 +436,8 @@ describe('seo', function () {
                         describe('on save', function () {
                             beforeEach(function () {
                                 spyOn(seoSupport, 'update');
-                                editScope.seo.title = 'new';
-                                editScope.save(editScope.seo);
+                                editScope.state.seo.title = 'new';
+                                editScope.save();
                             });
 
                             it('is working', function () {
@@ -441,6 +463,47 @@ describe('seo', function () {
                                 it('edit mode renderer is closed', function () {
                                     expect(editModeRenderer.close).toHaveBeenCalled();
                                 });
+                            });
+                        });
+                    });
+
+                    describe('on switch state', function () {
+                        beforeEach(function () {
+                            editScope.switchState();
+                        });
+
+                        it('is in favicon state', function () {
+                            expect(editScope.state.name).toEqual('favicon');
+                        });
+
+                        it('isPermitted is on state', function () {
+                            expect(editScope.state.isPermitted).toBeFalsy();
+                        });
+
+                        describe('on switch state again', function () {
+                            beforeEach(function () {
+                                editScope.switchState();
+                            });
+
+                            it('is back in seo state', function () {
+                                expect(editScope.state.name).toEqual('seo');
+                            });
+                        });
+                    });
+
+                    describe('and user has favicon.upload permission', function () {
+                        beforeEach(function () {
+                            binarta.checkpoint.gateway.addPermission('video.config.update');
+                            binarta.checkpoint.profile.refresh();
+                        });
+
+                        describe('on switch state', function () {
+                            beforeEach(function () {
+                                editScope.switchState();
+                            });
+
+                            it('isPermitted is on state', function () {
+                                expect(editScope.state.isPermitted).toBeTruthy();
                             });
                         });
                     });

@@ -113,6 +113,10 @@
                 if (args.content) head.append('<meta ' + type + '="' + id + '" content="' + args.content + '">');
             } else args.content ? result[0].content = args.content : result[0].remove();
         }
+
+        head.append('<link rel="apple-touch-icon" sizes="180x180" href="' + config.awsPath + 'favicon.img?height=180">');
+        head.append('<link rel="icon" type="image/png" sizes="32x32" href="' + config.awsPath + 'favicon.img?height=32">');
+        head.append('<link rel="icon" type="image/png" sizes="16x16" href="' + config.awsPath + 'favicon.img?height=16">');
     }
 
     function seoSupportDirectiveFactory(editModeRenderer, seoSupport, binarta) {
@@ -121,41 +125,61 @@
             scope: true,
             link: function (scope) {
                 scope.open = function () {
-                    var rendererScope = scope.$new();
-                    rendererScope.close = function () {
+                    var editScope = scope.$new();
+                    editScope.close = function () {
                         editModeRenderer.close();
                     };
 
-                    binarta.checkpoint.profile.hasPermission('seo.edit') ? isPermitted() : unavailable();
+                    function UnavailableState() {
+                        this.name = 'unavailable';
+                    }
 
-                    function isPermitted() {
+                    function SeoState() {
+                        var state = this;
+                        this.name = 'seo';
+                        this.switchState = function () {
+                            editScope.state = new FaviconState();
+                        };
+
                         seoSupport.getSEOValues({success: withSEOValues});
 
                         function withSEOValues(seo) {
-                            rendererScope.seo = seo;
-                            rendererScope.seo.pageCode = binarta.application.unlocalizedPath();
+                            state.seo = seo;
+                            state.seo.pageCode = binarta.application.unlocalizedPath();
 
-                            editModeRenderer.open({
-                                templateUrl: 'bin-seo-edit.html',
-                                scope: rendererScope
-                            });
-
-                            rendererScope.save = function (args) {
-                                rendererScope.working = true;
-                                args.success = function () {
+                            state.save = function () {
+                                editScope.working = true;
+                                state.seo.success = function () {
                                     editModeRenderer.close();
                                 };
-                                seoSupport.update(args);
+                                seoSupport.update(state.seo);
                             };
                         }
                     }
 
-                    function unavailable() {
-                        editModeRenderer.open({
-                            templateUrl: 'bin-seo-unavailable.html',
-                            scope: rendererScope
-                        });
+                    function FaviconState() {
+                        this.name = 'favicon';
+                        //TODO: update to favicon.upload when this permission becomes available
+                        this.isPermitted = binarta.checkpoint.profile.hasPermission('video.config.update');
+                        this.switchState = function () {
+                            editScope.state = new SeoState();
+                        };
                     }
+
+                    editScope.save = function () {
+                        if (editScope.state.save) editScope.state.save();
+                    };
+
+                    editScope.switchState = function () {
+                        if (editScope.state.switchState) editScope.state.switchState();
+                    };
+
+                    editScope.state = binarta.checkpoint.profile.hasPermission('seo.edit') ? new SeoState() : new UnavailableState();
+
+                    editModeRenderer.open({
+                        templateUrl: 'bin-seo-edit.html',
+                        scope: editScope
+                    });
                 };
             }
         }

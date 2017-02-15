@@ -2,59 +2,59 @@
   "msgs":{
     "nl":{
       "seo.menu.unavailable.message": "Upgrade jouw website om de titel en omschrijving van al je pagina's aan te passen. Zo zorg je ervoor dat je pagina's mooi worden weergegeven in de zoekresultaten.",
-      "seo.menu.close.button": "Sluiten",
+      "seo.menu.favicon.upload.unauthorized": "Upgrade jouw website om het website icoontje (favicon) aan te passen.",
+      "seo.menu.favicon.advice": "Voor het beste resultaat, gebruik een vierkante of ronde afbeelding met transparante achtergrond. Omwille van caching kan het even duren vooraleer het nieuwe icoontje zichtbaar is in jouw browser.",
       "seo.menu.upgrade.button": "Upgraden",
-      "seo.menu.save.button": "Opslaan",
-      "seo.menu.cancel.button": "Annuleren",
       "seo.menu.site.name.label": "Merknaam of naam van je website",
       "seo.menu.default.title.label": "Standaard paginatitel",
       "seo.menu.default.title.info": "Wordt gebruikt als er geen pagina specifieke titel is gedefinieerd.",
       "seo.menu.title.label": "Paginatitel",
       "seo.menu.title.info": "Voor een goede weergave in de zoekresultaten, maak de titel niet langer dan 60 tekens.",
       "seo.menu.description.label": "Paginabeschrijving",
-      "seo.menu.description.info": "Voor een goede weergave in de zoekresultaten, maak de beschrijving niet langer dan 160 tekens."
+      "seo.menu.description.info": "Voor een goede weergave in de zoekresultaten, maak de beschrijving niet langer dan 160 tekens.",
+      "seo.menu.favicon.button": "Website icoon"
     },
     "en":{
       "seo.menu.unavailable.message": "Upgrade your website to define the title and description of all your pages in order to rank higher in search engines like Google.",
-      "seo.menu.close.button": "Close",
+      "seo.menu.favicon.upload.unauthorized": "Upgrade your website to use a personalized website icon (favicon).",
+      "seo.menu.favicon.advice": "For best results, use a square or a round image with a transparent background. Due to caching, it could take a while for your new icon to be visible in your browser.",
       "seo.menu.upgrade.button": "Upgrade",
-      "seo.menu.save.button": "Save",
-      "seo.menu.cancel.button": "Cancel",
       "seo.menu.site.name.label": "Brand name or site name",
       "seo.menu.default.title.label": "Default page title",
       "seo.menu.default.title.info": "This title will be used when no other page title is defined.",
       "seo.menu.title.label": "Page title",
       "seo.menu.title.info": "Keep your title below 60 characters to make sure it is displayed properly in the search results.",
       "seo.menu.description.label": "Page description",
-      "seo.menu.description.info": "Keep your description below 160 characters to make sure it is displayed properly in the search results."
+      "seo.menu.description.info": "Keep your description below 160 characters to make sure it is displayed properly in the search results.",
+      "seo.menu.favicon.button": "Website icon"
     },
     "fr":{
       "seo.menu.unavailable.message": "Upgrade your website to define the title and description of all your pages in order to rank higher in search engines like Google.",
-      "seo.menu.close.button": "Fermer",
+      "seo.menu.favicon.upload.unauthorized": "Upgrade your website to use a personalized website icon (favicon).",
+      "seo.menu.favicon.advice": "For best results, use a square or a round image with a transparent background. Due to caching, it could take a while for your new icon to be visible in your browser.",
       "seo.menu.upgrade.button": "Mise à niveau",
-      "seo.menu.save.button": "Enregistrer",
-      "seo.menu.cancel.button": "Annuler",
       "seo.menu.site.name.label": "Nom de la marque ou de votre site",
       "seo.menu.default.title.label": "Titre par défaut",
       "seo.menu.default.title.info": "Ce titre sera utilisé si aucun autre titre n'est spécifié.",
       "seo.menu.title.label": "Titre de la page",
       "seo.menu.title.info": "Limitez de préférence le titre en-dessous de 60 caractères pour s'assurer qu'il s'affiche correctement dans les résultats de recherche.",
       "seo.menu.description.label": "Description de la page",
-      "seo.menu.description.info": "Limitez de préférence la description en-dessous de 160 caractères pour s'assurer qu'il s'affiche correctement dans les résultats de recherche."
+      "seo.menu.description.info": "Limitez de préférence la description en-dessous de 160 caractères pour s'assurer qu'il s'affiche correctement dans les résultats de recherche.",
+      "seo.menu.favicon.button": "Website icon"
     },
     "de":{
       "seo.menu.unavailable.message": "Upgrade your website to define the title and description of all your pages in order to rank higher in search engines like Google.",
-      "seo.menu.close.button": "Schließen",
+      "seo.menu.favicon.upload.unauthorized": "Upgrade your website to use a personalized website icon (favicon).",
+      "seo.menu.favicon.advice": "For best results, use a square or a round image with a transparent background. Due to caching, it could take a while for your new icon to be visible in your browser.",
       "seo.menu.upgrade.button": "Upgraden",
-      "seo.menu.save.button": "Speichern",
-      "seo.menu.cancel.button": "Abbrechen",
       "seo.menu.site.name.label": "Markenname oder Name Ihrer Website",
       "seo.menu.default.title.label": "Standard-Seitentitel",
       "seo.menu.default.title.info": "Wird verwendet, wenn kein seitenspezifischer Titel festgelegt wurde.",
       "seo.menu.title.label": "Seitentitel",
       "seo.menu.title.info": "Für ein gutes Suchergebnis darf der Titel nicht mehr als 60 Zeichen umfassen.",
       "seo.menu.description.label": "Seitenbeschreibung",
-      "seo.menu.description.info": "Für ein gutes Suchergebnis darf die Beschreibung nicht mehr als 160 Zeichen umfassen."
+      "seo.menu.description.info": "Für ein gutes Suchergebnis darf die Beschreibung nicht mehr als 160 Zeichen umfassen.",
+      "seo.menu.favicon.button": "Website icon"
     }
   }
 }

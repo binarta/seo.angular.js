@@ -1,42 +1,80 @@
-<form class="bin-menu-edit-body">
-    <div class="form-group">
-        <div ng-if="seo.pageCode == '/'">
+<div ng-switch="state.name">
+    <form class="bin-menu-edit-body">
+
+        <div ng-switch-when="unavailable">
+            <p i18n code="seo.menu.unavailable.message" read-only ng-bind="::var"></p>
+        </div>
+
+        <div ng-switch-when="seo">
             <div class="form-group">
-                <label for="inputSiteName" i18n code="seo.menu.site.name.label" read-only ng-bind="::var"></label>
-                <input type="text" id="inputSiteName" ng-model="seo.siteName">
+                <div ng-if="state.seo.pageCode == '/'">
+                    <div class="form-group">
+                        <label for="inputSiteName" i18n code="seo.menu.site.name.label" read-only ng-bind="::var"></label>
+                        <input type="text" id="inputSiteName" ng-model="state.seo.siteName">
+                    </div>
+
+                    <label for="inputDefaultTitle" i18n code="seo.menu.default.title.label" read-only ng-bind="::var"></label>
+                    <input type="text" id="inputDefaultTitle" ng-model="state.seo.defaultTitle">
+                    <small i18n code="seo.menu.default.title.info" read-only>
+                        <i class="fa fa-info-circle"></i> <span ng-bind="::var"></span>
+                    </small>
+                </div>
             </div>
 
-            <label for="inputDefaultTitle" i18n code="seo.menu.default.title.label" read-only ng-bind="::var"></label>
-            <input type="text" id="inputDefaultTitle" ng-model="seo.defaultTitle">
-            <small i18n code="seo.menu.default.title.info" read-only>
-                <i class="fa fa-info-circle"></i> <span ng-bind="::var"></span>
-            </small>
+            <div class="form-group">
+                <label for="inputTitle" i18n code="seo.menu.title.label" read-only ng-bind="::var"></label>
+                <input type="text" id="inputTitle" ng-model="state.seo.title" autofocus>
+                <small i18n code="seo.menu.title.info" read-only>
+                    <i class="fa fa-info-circle"></i> <span ng-bind="::var"></span>
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="inputDescription" i18n code="seo.menu.description.label" read-only ng-bind="::var"></label>
+                <textarea id="inputDescription" ng-model="state.seo.description"></textarea>
+                <small i18n code="seo.menu.description.info" read-only>
+                    <i class="fa fa-info-circle"></i> <span ng-bind="::var"></span>
+                </small>
+            </div>
         </div>
-    </div>
 
-    <div class="form-group">
-        <label for="inputTitle" i18n code="seo.menu.title.label" read-only ng-bind="::var"></label>
-        <input type="text" id="inputTitle" ng-model="seo.title" autofocus>
-        <small i18n code="seo.menu.title.info" read-only>
-            <i class="fa fa-info-circle"></i> <span ng-bind="::var"></span>
-        </small>
-    </div>
+        <div ng-switch-when="favicon">
+            <bin-image-uploader image-code="favicon.img"
+                                image-height="180"
+                                i18n-help-code="seo.menu.favicon.advice"
+                                ng-if="state.isPermitted">
+            </bin-image-uploader>
+            <div ng-if="!state.isPermitted">
+                <p i18n code="seo.menu.favicon.upload.unauthorized" read-only ng-bind="::var"></p>
+            </div>
+        </div>
 
-    <div class="form-group">
-        <label for="inputDescription" i18n code="seo.menu.description.label" read-only ng-bind="::var"></label>
-        <textarea id="inputDescription" ng-model="seo.description"></textarea>
-        <small i18n code="seo.menu.description.info" read-only>
-            <i class="fa fa-info-circle"></i> <span ng-bind="::var"></span>
-        </small>
+    </form>
+    <div class="bin-menu-edit-actions">
+        <a class="btn btn-success pull-left" ng-href="{{::binartaUpgradeUri}}" target="_blank"
+           i18n code="seo.menu.upgrade.button" read-only ng-bind="::var"
+           ng-switch-when="unavailable"></a>
+
+        <button type="button" class="btn btn-default pull-left" ng-click="switchState()"
+                i18n code="clerk.menu.back.button" read-only ng-bind="::var"
+                ng-switch-when="favicon">
+        </button>
+        <button type="button" class="btn btn-default pull-left" ng-click="switchState()"
+                i18n code="seo.menu.favicon.button" read-only ng-bind="::var"
+                ng-switch-when="seo">
+        </button>
+
+        <button type="submit" class="btn btn-primary" ng-click="save()"
+                i18n code="clerk.menu.save.button" read-only
+                ng-switch-when="seo">
+            <span ng-show="working"><i class="fa fa-spinner fa-spin fa-fw"></i></span>
+            <span ng-bind="::var"></span>
+        </button>
+        <button type="reset" class="btn btn-default" ng-click="close()" ng-disabled="working"
+                i18n code="clerk.menu.cancel.button" read-only ng-bind="::var" ng-switch-when="seo">
+        </button>
+        <button type="reset" class="btn btn-default" ng-click="close()" ng-disabled="working"
+                i18n code="clerk.menu.close.button" read-only ng-bind="::var" ng-switch-when="favicon">
+        </button>
     </div>
-</form>
-<div class="bin-menu-edit-actions">
-    <button type="submit" class="btn btn-primary" ng-click="save(seo)"
-            i18n code="seo.menu.save.button" read-only>
-        <span ng-show="working"><i class="fa fa-spinner fa-spin fa-fw"></i></span>
-        <span ng-bind="::var"></span>
-    </button>
-    <button type="reset" class="btn btn-default" ng-click="close()" ng-disabled="working"
-            i18n code="seo.menu.cancel.button" read-only ng-bind="::var">
-    </button>
 </div>
