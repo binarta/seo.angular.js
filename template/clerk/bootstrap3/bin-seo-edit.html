@@ -74,7 +74,8 @@
                 i18n code="clerk.menu.cancel.button" read-only ng-bind="::var" ng-switch-when="seo">
         </button>
         <button type="reset" class="btn btn-default" ng-click="close()" ng-disabled="working"
-                i18n code="clerk.menu.close.button" read-only ng-bind="::var" ng-switch-when="favicon">
+                i18n code="clerk.menu.close.button" read-only ng-bind="::var"
+                ng-switch-when="favicon|unavailable" ng-switch-when-separator="|">
         </button>
     </div>
 </div>
