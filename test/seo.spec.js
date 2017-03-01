@@ -493,7 +493,7 @@ describe('seo', function () {
 
                     describe('and user has favicon.upload permission', function () {
                         beforeEach(function () {
-                            binarta.checkpoint.gateway.addPermission('video.config.update');
+                            binarta.checkpoint.gateway.addPermission('favicon.upload');
                             binarta.checkpoint.profile.refresh();
                         });
 

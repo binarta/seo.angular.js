@@ -159,8 +159,7 @@
 
                     function FaviconState() {
                         this.name = 'favicon';
-                        //TODO: update to favicon.upload when this permission becomes available
-                        this.isPermitted = binarta.checkpoint.profile.hasPermission('video.config.update');
+                        this.isPermitted = binarta.checkpoint.profile.hasPermission('favicon.upload');
                         this.switchState = function () {
                             editScope.state = new SeoState();
                         };
