@@ -8,7 +8,7 @@
         .directive('seoImage', ['seoSupport', SeoImageDirective])
         .run(['seoSupport', '$rootScope', function (seoSupport, $rootScope) {
             $rootScope.$on('$routeChangeStart', function () {
-                seoSupport.resolve();
+                seoSupport.updateTags();
             });
         }]);
 
@@ -56,10 +56,11 @@
             });
         };
 
-        this.resolve = function () {
+        this.updateTags = function () {
             this.getSEOValues({
                 success: updateTags
             });
+            updateCanonicalLinkTag();
         };
 
         function getNamespace() {
@@ -112,6 +113,12 @@
             if (result.length == 0) {
                 if (args.content) head.append('<meta ' + type + '="' + id + '" content="' + args.content + '">');
             } else args.content ? result[0].content = args.content : result[0].remove();
+        }
+
+        function updateCanonicalLinkTag() {
+            var result = head.find('link[rel="canonical"]');
+            var href = $location.absUrl();
+            result.length == 0 ? head.append('<link rel="canonical" href="' + href + '">') : result[0].href = href;
         }
 
         head.append('<link rel="apple-touch-icon" sizes="180x180" href="' + config.awsPath + 'favicon.img?height=180">');

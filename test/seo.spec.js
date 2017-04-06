@@ -24,12 +24,19 @@ describe('seo', function () {
 
     describe('on route change', function () {
         beforeEach(function () {
-            spyOn(seoSupport, 'resolve');
             $rootScope.$broadcast('$routeChangeStart', {params: {}});
         });
 
-        it('seo values are resolved', function () {
-            expect(seoSupport.resolve).toHaveBeenCalled();
+        it('canonical link is added', function () {
+            var tag = head.find('link[rel="canonical"]')[0];
+            expect(tag.href).toContain(path);
+        });
+
+        it('on path change, update canonical link', function () {
+            $location.path('/new/path');
+            $rootScope.$broadcast('$routeChangeStart', {params: {}});
+            var tag = head.find('link[rel="canonical"]')[0];
+            expect(tag.href).toContain('/new/path');
         });
     });
 
@@ -37,19 +44,12 @@ describe('seo', function () {
         var siteName, defaultTitle, pageTitle, pageDescription;
 
         describe('on resolve with default values', function () {
-            var resolved;
-
             beforeEach(function () {
                 siteName = defaultSiteName;
                 defaultTitle = '';
                 pageTitle = '';
                 pageDescription = '';
-
-                seoSupport.resolve({
-                    success: function (seo) {
-                        resolved = seo;
-                    }
-                });
+                $rootScope.$broadcast('$routeChangeStart', {params: {}});
             });
 
             it('default message are resolved', function () {
@@ -127,7 +127,7 @@ describe('seo', function () {
                 i18n.updateSpy[path + '.seo.title'] = pageTitle;
                 i18n.updateSpy[path + '.seo.description'] = pageDescription;
 
-                seoSupport.resolve();
+                $rootScope.$broadcast('$routeChangeStart', {params: {}});
             });
 
             it('message are resolved', function () {
@@ -547,7 +547,7 @@ describe('seo', function () {
         describe('with a previous title', function () {
             beforeEach(function () {
                 i18n.updateSpy[path + '.seo.title'] = 'previous title';
-                seoSupport.resolve();
+                seoSupport.updateTags();
                 $compile(element)(scope);
                 scope.var = 'Page title';
                 scope.$digest();
@@ -614,7 +614,7 @@ describe('seo', function () {
         describe('with previous description', function () {
             beforeEach(function () {
                 i18n.updateSpy[path + '.seo.description'] = 'previous description';
-                seoSupport.resolve();
+                seoSupport.updateTags();
                 $compile(element)(scope);
                 scope.var = 'd';
                 scope.$digest();
