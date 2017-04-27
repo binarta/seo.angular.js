@@ -29,9 +29,9 @@
       "seo.menu.favicon.button": "Website icon"
     },
     "fr":{
-      "seo.menu.unavailable.message": "Upgrade your website to define the title and description of all your pages in order to rank higher in search engines like Google.",
-      "seo.menu.favicon.upload.unauthorized": "Upgrade your website to use a personalized website icon (favicon).",
-      "seo.menu.favicon.advice": "For best results, use a square or a round image with a transparent background. Due to caching, it could take a while for your new icon to be visible in your browser.",
+      "seo.menu.unavailable.message": "Mettez à niveau votre site web pour définir le titre et la description de toutes vos pages afin d’améliorer votre classement dans les moteurs de recherche comme Google.",
+      "seo.menu.favicon.upload.unauthorized": "Mettez à niveau votre site web pour utiliser une icône de site web personnalisée (favicon).",
+      "seo.menu.favicon.advice": "Pour de meilleurs résultats, utilisez une image carrée ou ronde avec un fond transparent. En raison de la mise en cache, il pourrait prendre un certain temps pour votre nouvelle icône soit visible dans votre navigateur.",
       "seo.menu.upgrade.button": "Mise à niveau",
       "seo.menu.site.name.label": "Nom de la marque ou de votre site",
       "seo.menu.default.title.label": "Titre par défaut",
@@ -40,7 +40,7 @@
       "seo.menu.title.info": "Limitez de préférence le titre en-dessous de 60 caractères pour s'assurer qu'il s'affiche correctement dans les résultats de recherche.",
       "seo.menu.description.label": "Description de la page",
       "seo.menu.description.info": "Limitez de préférence la description en-dessous de 160 caractères pour s'assurer qu'il s'affiche correctement dans les résultats de recherche.",
-      "seo.menu.favicon.button": "Website icon"
+      "seo.menu.favicon.button": "Icône du site web"
     },
     "de":{
       "seo.menu.unavailable.message": "Upgrade your website to define the title and description of all your pages in order to rank higher in search engines like Google.",
