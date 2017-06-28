@@ -22,20 +22,31 @@ describe('seo', function () {
         binarta.application.adhesiveReading.read('-');
     }
 
+    describe('on route change', function () {
+        beforeEach(function () {
+            seoSupport.updateTitleTag = jasmine.createSpy();
+            $rootScope.$broadcast('$routeChangeStart', {params: {}});
+        });
+
+        it('title tag is updated', function () {
+            expect(seoSupport.updateTitleTag).toHaveBeenCalled();
+        });
+    });
+
     describe('seoSupport service', function () {
         var siteName, defaultTitle, pageTitle, pageDescription;
 
         describe('on getSEOValues with default values', function () {
             var successSpy;
 
-            beforeEach(inject(function () {
+            beforeEach(function () {
                 siteName = defaultSiteName;
                 defaultTitle = '';
                 pageTitle = '';
                 pageDescription = '';
                 successSpy = jasmine.createSpy('spy');
                 seoSupport.getSEOValues({success: successSpy});
-            }));
+            });
 
             it('default message are resolved', function () {
                 expect(i18n.resolveSpy['seo.site.name']).toEqual(siteName);
