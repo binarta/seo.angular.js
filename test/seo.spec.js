@@ -154,21 +154,6 @@ describe('seo', function () {
                 });
             });
         });
-
-        it('apple icon is added to head', function () {
-            var appleIcon = head.find('link[rel="apple-touch-icon"]')[0];
-            expect(appleIcon.sizes.toString()).toEqual('180x180');
-            expect(appleIcon.href).toContain(config.awsPath + 'favicon.img?height=180');
-        });
-
-        it('favicons are added to head', function () {
-            var favicons = head.find('link[rel="icon"]');
-            expect(favicons[0].sizes.toString()).toEqual('32x32');
-            expect(favicons[0].href).toContain(config.awsPath + 'favicon.img?height=32');
-            expect(favicons[1].sizes.toString()).toEqual('16x16');
-            expect(favicons[1].href).toContain(config.awsPath + 'favicon.img?height=16');
-        });
-
     });
 
     describe('seoSupport directive', function () {

@@ -66,10 +66,6 @@
                 if (args.content) head.prepend('<' + args.tag + '>' + args.content + '</' + args.tag + '>');
             } else args.content ? result[0].textContent = args.content : result[0].remove();
         }
-
-        head.append('<link rel="apple-touch-icon" sizes="180x180" href="' + config.awsPath + 'favicon.img?height=180">');
-        head.append('<link rel="icon" type="image/png" sizes="32x32" href="' + config.awsPath + 'favicon.img?height=32">');
-        head.append('<link rel="icon" type="image/png" sizes="16x16" href="' + config.awsPath + 'favicon.img?height=16">');
     }
 
     function seoSupportDirectiveFactory(editModeRenderer, seoSupport, binarta) {
