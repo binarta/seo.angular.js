@@ -2,12 +2,7 @@
     angular.module('seo', ['binarta-applicationjs-angular1', 'binarta-checkpointjs-angular1', 'i18n', 'config',
         'toggle.edit.mode', 'ngRoute', 'angularx'])
         .service('seoSupport', ['$q', '$document', 'i18n', 'config', 'binarta', SeoSupportService])
-        .directive('seoSupport', ['editModeRenderer', 'seoSupport', 'binarta', seoSupportDirectiveFactory])
-        .run(['$rootScope', 'seoSupport', function ($rootScope, seoSupport) {
-            $rootScope.$on('$routeChangeStart', function () {
-                seoSupport.updateTitleTag();
-            });
-        }]);
+        .directive('seoSupport', ['editModeRenderer', 'seoSupport', 'binarta', seoSupportDirectiveFactory]);
 
     function SeoSupportService($q, $document, i18n, config, binarta) {
         var self = this;
@@ -33,10 +28,6 @@
                     if (args && args.success) args.success(self.seo);
                 });
             });
-        };
-
-        this.updateTitleTag = function () {
-            this.getSEOValues({success: updateTitleTag});
         };
 
         this.update = function (args) {
