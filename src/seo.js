@@ -1,8 +1,8 @@
 (function () {
     angular.module('seo', ['binarta-applicationjs-angular1', 'binarta-checkpointjs-angular1', 'i18n', 'config',
         'toggle.edit.mode', 'ngRoute', 'angularx'])
-        .service('seoSupport', ['$location', '$q', '$document', 'i18n', 'config', 'binarta', SeoSupportService])
-        .directive('seoSupport', ['editModeRenderer', 'seoSupport', 'binarta', seoSupportDirectiveFactory])
+        .service('seoSupport', ['$rootScope', '$location', '$q', '$document', 'i18n', 'config', 'binarta', 'editModeRenderer', SeoSupportService])
+        .directive('seoSupport', ['seoSupport', seoSupportDirectiveFactory])
         .directive('seoTitle', ['seoSupport', SeoTitleDirective])
         .directive('seoDescription', ['$filter', 'seoSupport', SeoDescriptionDirective])
         .directive('seoImage', ['seoSupport', SeoImageDirective])
@@ -12,7 +12,7 @@
             });
         }]);
 
-    function SeoSupportService($location, $q, $document, i18n, config, binarta) {
+    function SeoSupportService($rootScope, $location, $q, $document, i18n, config, binarta, editModeRenderer) {
         var self = this;
         var head = $document.find('head');
         var listeners = [];
@@ -111,6 +111,65 @@
             updateMetaTag({property: 'og:image', content: url});
         };
 
+        this.open = function (args) {
+            var scope = $rootScope.$new();
+            angular.extend(scope, args);
+
+            scope.close = function () {
+                editModeRenderer.close();
+            };
+
+            function UnavailableState() {
+                this.name = 'unavailable';
+            }
+
+            function SeoState() {
+                var state = this;
+                this.name = 'seo';
+                this.switchState = function () {
+                    scope.state = new FaviconState();
+                };
+
+                self.getSEOValues({success: withSEOValues});
+
+                function withSEOValues(seo) {
+                    state.seo = seo;
+                    state.seo.pageCode = binarta.application.unlocalizedPath();
+
+                    state.save = function () {
+                        scope.working = true;
+                        state.seo.success = function () {
+                            editModeRenderer.close();
+                        };
+                        self.update(state.seo);
+                    };
+                }
+            }
+
+            function FaviconState() {
+                this.name = 'favicon';
+                this.isPermitted = binarta.checkpoint.profile.hasPermission('favicon.upload');
+                this.switchState = function () {
+                    scope.state = new SeoState();
+                };
+            }
+
+            scope.save = function () {
+                if (scope.state.save) scope.state.save();
+            };
+
+            scope.switchState = function () {
+                if (scope.state.switchState) scope.state.switchState();
+            };
+
+            scope.state = binarta.checkpoint.profile.hasPermission('seo.edit') ? new SeoState() : new UnavailableState();
+
+            editModeRenderer.open({
+                templateUrl: 'bin-seo-edit.html',
+                scope: scope
+            });
+        };
+
         function updateTag(args) {
             var result = head.find(args.tag);
             if (result.length == 0) {
@@ -145,66 +204,13 @@
         head.append('<link rel="icon" type="image/png" sizes="16x16" href="' + config.awsPath + 'favicon.img?height=16">');
     }
 
-    function seoSupportDirectiveFactory(editModeRenderer, seoSupport, binarta) {
+    function seoSupportDirectiveFactory(seoSupport) {
         return {
             restrict: 'A',
             scope: true,
             link: function (scope) {
                 scope.open = function () {
-                    var editScope = scope.$new();
-                    editScope.close = function () {
-                        editModeRenderer.close();
-                    };
-
-                    function UnavailableState() {
-                        this.name = 'unavailable';
-                    }
-
-                    function SeoState() {
-                        var state = this;
-                        this.name = 'seo';
-                        this.switchState = function () {
-                            editScope.state = new FaviconState();
-                        };
-
-                        seoSupport.getSEOValues({success: withSEOValues});
-
-                        function withSEOValues(seo) {
-                            state.seo = seo;
-                            state.seo.pageCode = binarta.application.unlocalizedPath();
-
-                            state.save = function () {
-                                editScope.working = true;
-                                state.seo.success = function () {
-                                    editModeRenderer.close();
-                                };
-                                seoSupport.update(state.seo);
-                            };
-                        }
-                    }
-
-                    function FaviconState() {
-                        this.name = 'favicon';
-                        this.isPermitted = binarta.checkpoint.profile.hasPermission('favicon.upload');
-                        this.switchState = function () {
-                            editScope.state = new SeoState();
-                        };
-                    }
-
-                    editScope.save = function () {
-                        if (editScope.state.save) editScope.state.save();
-                    };
-
-                    editScope.switchState = function () {
-                        if (editScope.state.switchState) editScope.state.switchState();
-                    };
-
-                    editScope.state = binarta.checkpoint.profile.hasPermission('seo.edit') ? new SeoState() : new UnavailableState();
-
-                    editModeRenderer.open({
-                        templateUrl: 'bin-seo-edit.html',
-                        scope: editScope
-                    });
+                    seoSupport.open();
                 };
             }
         }

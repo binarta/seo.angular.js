@@ -1,11 +1,11 @@
 describe('seo', function () {
-    var $rootScope, $location, $compile, seoSupport, binarta, i18n, config, head,
+    var $rootScope, $location, $compile, seoSupport, binarta, i18n, config, head, editModeRenderer
         path = '/unlocalized/path',
         defaultSiteName = 'Namespace';
 
     beforeEach(module('seo'));
 
-    beforeEach(inject(function (_$rootScope_, _$location_, _$compile_, _seoSupport_, _binarta_, _i18n_, _config_, $document) {
+    beforeEach(inject(function (_$rootScope_, _$location_, _$compile_, _seoSupport_, _binarta_, _i18n_, _config_, $document, _editModeRenderer_) {
         $rootScope = _$rootScope_;
         $location = _$location_;
         $compile = _$compile_;
@@ -15,6 +15,7 @@ describe('seo', function () {
         config = _config_;
         head = $document.find('head');
         $location.path(path);
+        editModeRenderer = _editModeRenderer_;
         triggerBinartaSchedule();
     }));
 
@@ -414,22 +415,11 @@ describe('seo', function () {
                 });
             });
         });
-    });
 
-    describe('seoSupport directive', function () {
-        var element, editModeRenderer, scope;
-
-        beforeEach(inject(function (_editModeRenderer_) {
-            editModeRenderer = _editModeRenderer_;
-            element = angular.element('<div seo-support></div>');
-            $compile(element)($rootScope.$new());
-            scope = element.scope();
-        }));
-
-        describe('when user has no seo.edit permission', function () {
-            describe('on open', function () {
+        describe('on open', function () {
+            describe('when user has no seo.edit permission', function () {
                 beforeEach(function () {
-                    scope.open();
+                    seoSupport.open();
                 });
 
                 it('edit mode renderer is opened', function () {
@@ -456,17 +446,12 @@ describe('seo', function () {
                     });
                 });
             });
-        });
 
-        describe('when user has seo.edit permission', function () {
-            beforeEach(function () {
-                binarta.checkpoint.gateway.addPermission('seo.edit');
-                binarta.checkpoint.registrationForm.submit({username: 'u', password: 'p'});
-            });
-
-            describe('on open', function () {
+            describe('when user has seo.edit permission', function () {
                 beforeEach(function () {
-                    scope.open();
+                    binarta.checkpoint.gateway.addPermission('seo.edit');
+                    binarta.checkpoint.registrationForm.submit({username: 'u', password: 'p'});
+                    seoSupport.open();
                 });
 
                 it('edit mode renderer is opened', function () {
@@ -489,7 +474,7 @@ describe('seo', function () {
 
                     describe('with SEO values', function () {
                         beforeEach(function () {
-                            scope.$digest();
+                            $rootScope.$digest();
                         });
 
                         it('SEO values are available', function () {
@@ -578,6 +563,22 @@ describe('seo', function () {
                     });
                 });
             });
+        });
+    });
+
+    describe('seoSupport directive', function () {
+        var element, scope;
+
+        beforeEach(function () {
+            element = angular.element('<div seo-support></div>');
+            $compile(element)($rootScope.$new());
+            scope = element.scope();
+            spyOn(seoSupport, 'open');
+        });
+
+        it('on open', function () {
+            scope.open();
+            expect(seoSupport.open).toHaveBeenCalled();
         });
     });
 
