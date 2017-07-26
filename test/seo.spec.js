@@ -345,6 +345,75 @@ describe('seo', function () {
             expect(favicons[1].sizes.toString()).toEqual('16x16');
             expect(favicons[1].href).toContain(config.awsPath + 'favicon.img?height=16');
         });
+
+        describe('subscribe to seo value changes', function () {
+            var listener;
+
+            beforeEach(function () {
+                listener = jasmine.createSpy('spy');
+                seoSupport.subscribe(listener);
+            });
+
+            describe('when seo values are retrieved', function () {
+                beforeEach(function () {
+                    seoSupport.getSEOValues();
+                    $rootScope.$digest();
+                });
+
+                it('listener is called', function () {
+                    expect(listener).toHaveBeenCalledWith({
+                        siteName: 'Namespace',
+                        defaultTitle: '',
+                        title: '',
+                        description: ''
+                    });
+                });
+            });
+
+            describe('on update', function () {
+                beforeEach(function () {
+                    seoSupport.update({
+                        siteName: 'Namespace',
+                        defaultTitle: '',
+                        title: 'new',
+                        description: ''
+                    });
+                    $rootScope.$digest();
+                });
+
+                it('listener is called with updated values', function () {
+                    expect(listener).toHaveBeenCalledWith({
+                        siteName: 'Namespace',
+                        defaultTitle: '',
+                        title: 'new',
+                        description: ''
+                    });
+                });
+            });
+
+            describe('when listener is unsubscribed', function () {
+                beforeEach(function () {
+                    listener.calls.reset();
+                    seoSupport.unsubscribe(listener);
+                });
+
+                describe('on update', function () {
+                    beforeEach(function () {
+                        seoSupport.update({
+                            siteName: 'Namespace',
+                            defaultTitle: '',
+                            title: 'update',
+                            description: ''
+                        });
+                        $rootScope.$digest();
+                    });
+
+                    it('listener is not called with updated values', function () {
+                        expect(listener).not.toHaveBeenCalled();
+                    });
+                });
+            });
+        });
     });
 
     describe('seoSupport directive', function () {

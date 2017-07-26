@@ -15,6 +15,7 @@
     function SeoSupportService($location, $q, $document, i18n, config, binarta) {
         var self = this;
         var head = $document.find('head');
+        var listeners = [];
 
         this.seo = {};
 
@@ -34,9 +35,26 @@
                         description: result[3].trim()
                     };
                     if (args && args.success) args.success(self.seo);
+                    updateListeners();
                 });
             });
         };
+
+        this.subscribe = function (listener) {
+            listeners.push(listener);
+            listener(self.seo);
+        };
+
+        this.unsubscribe = function (listener) {
+            var index = listeners.indexOf(listener);
+            if (index > -1) listeners.splice(index, 1);
+        };
+
+        function updateListeners() {
+            listeners.forEach(function (listener) {
+                listener(self.seo);
+            });
+        }
 
         this.update = function (args) {
             $q.all([
@@ -53,6 +71,7 @@
                 };
                 updateTags();
                 if (args && args.success) args.success();
+                updateListeners();
             });
         };
 
