@@ -6,6 +6,8 @@
         .directive('seoTitle', ['seoSupport', SeoTitleDirective])
         .directive('seoDescription', ['$filter', 'seoSupport', SeoDescriptionDirective])
         .directive('seoImage', ['seoSupport', SeoImageDirective])
+        .component('binSiteName', new BinSiteNameComponent())
+        .component('binSiteDefaultTitle', new BinSiteDefaultTitleComponent())
         .run(['seoSupport', '$rootScope', function (seoSupport, $rootScope) {
             $rootScope.$on('$routeChangeStart', function () {
                 seoSupport.updateTags();
@@ -272,6 +274,47 @@
                     if (value) seoSupport.updateImageMetaTag(value);
                 });
             }
+        }
+    }
+
+    function BinSiteNameComponent() {
+        this.template = '<span ng-bind="$ctrl.siteName"></span>';
+        this.controller = ['$scope', '$element', 'seoSupport', 'editMode', function ($scope, $element, seoSupport, editMode) {
+            singleFieldComponent(this, 'siteName', $scope, $element, seoSupport, editMode);
+        }];
+    }
+
+    function BinSiteDefaultTitleComponent() {
+        this.template = '<span ng-bind="$ctrl.defaultTitle"></span>';
+        this.controller = ['$scope', '$element', 'seoSupport', 'editMode', function ($scope, $element, seoSupport, editMode) {
+            singleFieldComponent(this, 'defaultTitle', $scope, $element, seoSupport, editMode);
+        }];
+    }
+
+    function singleFieldComponent($ctrl, field, $scope, $element, seoSupport, editMode) {
+        $ctrl.$onInit = function () {
+            seoSupport.subscribe(listener);
+
+            editMode.bindEvent({
+                scope: $scope,
+                element: $element,
+                permission: 'i18n.message.add',
+                onClick: open
+            });
+
+            $ctrl.$onDestroy = function () {
+                seoSupport.unsubscribe(listener);
+            };
+        };
+
+        function listener(seo) {
+            $ctrl[field] = seo[field];
+        }
+
+        function open() {
+            seoSupport.open({
+                editSingleField: field
+            });
         }
     }
 })();

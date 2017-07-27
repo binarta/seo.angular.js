@@ -1,11 +1,11 @@
 describe('seo', function () {
-    var $rootScope, $location, $compile, seoSupport, binarta, i18n, config, head, editModeRenderer
+    var $rootScope, $location, $compile, seoSupport, binarta, i18n, config, head, editModeRenderer, editMode,
         path = '/unlocalized/path',
         defaultSiteName = 'Namespace';
 
     beforeEach(module('seo'));
 
-    beforeEach(inject(function (_$rootScope_, _$location_, _$compile_, _seoSupport_, _binarta_, _i18n_, _config_, $document, _editModeRenderer_) {
+    beforeEach(inject(function (_$rootScope_, _$location_, _$compile_, _seoSupport_, _binarta_, _i18n_, _config_, $document, _editModeRenderer_, _editMode_) {
         $rootScope = _$rootScope_;
         $location = _$location_;
         $compile = _$compile_;
@@ -16,6 +16,7 @@ describe('seo', function () {
         head = $document.find('head');
         $location.path(path);
         editModeRenderer = _editModeRenderer_;
+        editMode = _editMode_;
         triggerBinartaSchedule();
     }));
 
@@ -733,6 +734,116 @@ describe('seo', function () {
             it('image meta tag is updated', function () {
                 expect(tag.content).toEqual('http://another-url.jpg/');
             });
+        });
+    });
+
+    describe('binSiteName component', function () {
+        var $ctrl, element;
+
+        beforeEach(inject(function ($componentController) {
+            spyOn(seoSupport, 'subscribe');
+            spyOn(seoSupport, 'unsubscribe');
+            spyOn(seoSupport, 'open');
+            element = 'element';
+            $ctrl = $componentController('binSiteName', {$element: element});
+            $ctrl.$onInit();
+        }));
+
+        it('subscribe listener', function () {
+            expect(seoSupport.subscribe).toHaveBeenCalled();
+        });
+
+        it('edit mode is bound', function () {
+            expect(editMode.bindEvent).toHaveBeenCalledWith({
+                scope: jasmine.any(Object),
+                element: element,
+                permission: 'i18n.message.add',
+                onClick: jasmine.any(Function)
+            });
+        });
+
+        describe('on open', function () {
+            beforeEach(function () {
+                editMode.bindEvent.calls.mostRecent().args[0].onClick();
+            });
+
+            it('seoSupport is opened with singleField option', function () {
+                expect(seoSupport.open).toHaveBeenCalledWith({
+                    editSingleField: 'siteName'
+                });
+            });
+        });
+
+        describe('when listener is executed', function () {
+            beforeEach(function () {
+                seoSupport.subscribe.calls.mostRecent().args[0]({
+                    siteName: 'name'
+                });
+            });
+
+            it('value on ctrl is updated', function () {
+                expect($ctrl.siteName).toEqual('name');
+            });
+        });
+
+        it('on destroy', function () {
+            $ctrl.$onDestroy();
+            expect(seoSupport.unsubscribe).toHaveBeenCalledWith(seoSupport.subscribe.calls.mostRecent().args[0]);
+        });
+    });
+
+    describe('binSiteDefaultTitle component', function () {
+        var $ctrl, element;
+
+        beforeEach(inject(function ($componentController) {
+            spyOn(seoSupport, 'subscribe');
+            spyOn(seoSupport, 'unsubscribe');
+            spyOn(seoSupport, 'open');
+            element = 'element';
+            $ctrl = $componentController('binSiteDefaultTitle', {$element: element});
+            $ctrl.$onInit();
+        }));
+
+        it('subscribe listener', function () {
+            expect(seoSupport.subscribe).toHaveBeenCalled();
+        });
+
+        it('edit mode is bound', function () {
+            expect(editMode.bindEvent).toHaveBeenCalledWith({
+                scope: jasmine.any(Object),
+                element: element,
+                permission: 'i18n.message.add',
+                onClick: jasmine.any(Function)
+            });
+        });
+
+        describe('on open', function () {
+            beforeEach(function () {
+                editMode.bindEvent.calls.mostRecent().args[0].onClick();
+            });
+
+            it('seoSupport is opened with singleField option', function () {
+                expect(seoSupport.open).toHaveBeenCalledWith({
+                    editSingleField: 'defaultTitle'
+                });
+            });
+        });
+
+        describe('when listener is executed', function () {
+            beforeEach(function () {
+                seoSupport.subscribe.calls.mostRecent().args[0]({
+                    defaultTitle: 'title'
+                });
+            });
+
+            it('value on ctrl is updated', function () {
+                expect($ctrl.defaultTitle).toEqual('title');
+            });
+        });
+
+        it('on destroy', function () {
+            $ctrl.$onDestroy();
+            expect(seoSupport.unsubscribe).toHaveBeenCalledWith(seoSupport.subscribe.calls.mostRecent().args[0]);
         });
     });
 });
