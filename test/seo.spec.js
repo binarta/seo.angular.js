@@ -3,6 +3,7 @@ describe('seo', function () {
         path = '/unlocalized/path',
         defaultSiteName = 'Namespace';
 
+    beforeEach(module('binartajs-angular1-spec'));
     beforeEach(module('seo'));
 
     beforeEach(inject(function (_$rootScope_, _$location_, _$compile_, _seoSupport_, _binarta_, _i18n_, _config_, $document, _editModeRenderer_, _editMode_) {
@@ -337,15 +338,15 @@ describe('seo', function () {
         it('apple icon is added to head', function () {
             var appleIcon = head.find('link[rel="apple-touch-icon"]')[0];
             expect(appleIcon.sizes.toString()).toEqual('180x180');
-            expect(appleIcon.href).toContain(config.awsPath + 'favicon.img?height=180');
+            expect(appleIcon.href).toContain('image/' + config.namespace + '/favicon.img?height=180');
         });
 
         it('favicons are added to head', function () {
             var favicons = head.find('link[rel="icon"]');
             expect(favicons[0].sizes.toString()).toEqual('32x32');
-            expect(favicons[0].href).toContain(config.awsPath + 'favicon.img?height=32');
+            expect(favicons[0].href).toContain('image/' + config.namespace + '/favicon.img?height=32');
             expect(favicons[1].sizes.toString()).toEqual('16x16');
-            expect(favicons[1].href).toContain(config.awsPath + 'favicon.img?height=16');
+            expect(favicons[1].href).toContain('image/' + config.namespace + '/favicon.img?height=16');
         });
 
         describe('subscribe to seo value changes', function () {

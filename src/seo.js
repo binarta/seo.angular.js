@@ -1,5 +1,5 @@
 (function () {
-    angular.module('seo', ['binarta-applicationjs-angular1', 'binarta-checkpointjs-angular1', 'i18n', 'config',
+    angular.module('seo', ['binarta-applicationjs-angular1', 'binarta-checkpointjs-angular1', 'binarta-mediajs-angular1', 'i18n', 'config',
         'toggle.edit.mode', 'ngRoute', 'angularx'])
         .service('seoSupport', ['$rootScope', '$location', '$q', '$document', 'i18n', 'config', 'binarta', 'editModeRenderer', SeoSupportService])
         .directive('seoSupport', ['seoSupport', seoSupportDirectiveFactory])
@@ -201,9 +201,9 @@
             result.length == 0 ? head.append('<link rel="canonical" href="' + href + '">') : result[0].href = href;
         }
 
-        head.append('<link rel="apple-touch-icon" sizes="180x180" href="' + config.awsPath + 'favicon.img?height=180">');
-        head.append('<link rel="icon" type="image/png" sizes="32x32" href="' + config.awsPath + 'favicon.img?height=32">');
-        head.append('<link rel="icon" type="image/png" sizes="16x16" href="' + config.awsPath + 'favicon.img?height=16">');
+        head.append('<link rel="apple-touch-icon" sizes="180x180" href="' + binarta.media.images.toRelativeURL({path: 'favicon.img', height: 180}) + '">');
+        head.append('<link rel="icon" type="image/png" sizes="32x32" href="' + binarta.media.images.toRelativeURL({path: 'favicon.img', height: 32}) + '">');
+        head.append('<link rel="icon" type="image/png" sizes="16x16" href="' + binarta.media.images.toRelativeURL({path: 'favicon.img', height: 16}) + '">');
     }
 
     function seoSupportDirectiveFactory(seoSupport) {
